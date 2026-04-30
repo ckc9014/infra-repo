@@ -1,0 +1,33 @@
+name: Bootstrap S3 
+on:
+  workflow_dispatch:                     # Manual trigger only
+
+# Add OIDC permissions
+permissions:
+  id-token: write                      
+  contents: read                         
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+          
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Bootstrap S3 bucket and DynamoDB table
+        run: |
+          cd bootstrap
+          terraform init
+          terraform apply -auto-approve
