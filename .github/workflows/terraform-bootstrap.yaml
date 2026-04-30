@@ -1,7 +1,13 @@
 name: Bootstrap S3 
 
 on:
-  workflow_dispatch:                     
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'bootstrap/**'              
+      - '.github/workflows/terraform-bootstrap.yaml'                     
 
 permissions:
   id-token: write                      
