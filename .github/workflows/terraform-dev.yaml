@@ -1,0 +1,21 @@
+name: Terraform Dev
+
+on:
+  push:
+    branches: [ dev ]
+    paths:
+      - 'terraform/**'
+  workflow_dispatch:   
+
+jobs:
+  plan:
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      working_directory: ./terraform
+      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
+  apply:
+    needs: plan
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      working_directory: ./terraform
+      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
