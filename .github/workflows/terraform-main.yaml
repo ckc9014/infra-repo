@@ -16,6 +16,7 @@ jobs:
     with:
       working_directory: ./terraform
       aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
+      aws_region: ${{ vars.AWS_REGION }}
 
   apply:
     needs: plan
@@ -24,3 +25,4 @@ jobs:
     with:
       working_directory: ./terraform
       aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
+      aws_region: ${{ vars.AWS_REGION }}

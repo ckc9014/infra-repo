@@ -18,6 +18,7 @@ jobs:
         uses: ./.github/actions/setup-terraform-oidc
         with:
           aws-role-arn: ${{ inputs.aws_role_arn }}
+          aws_region: ${{ vars.AWS_REGION }}
           working-directory: ${{ inputs.working_directory }}
       - name: Terraform Plan
         working-directory: ${{ inputs.working_directory }}
