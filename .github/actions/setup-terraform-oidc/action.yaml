@@ -4,13 +4,16 @@ description: 'Checks out code, configures AWS OIDC, and sets up Terraform'
 inputs:
   aws-role-arn:
     required: true
+    description: 'ARN of the IAM role to assume via OIDC for GitHub Actions'
   aws-region:
     required: false
     default: 'eu-west-1'
+    description: 'AWS region where resources will be deployed (default: eu-west-1)'
   working-directory:
     required: false
     default: '.'
-    
+    description: 'Directory containing Terraform configuration (default: repository root)'
+
 runs:
   using: 'composite'
   steps:
