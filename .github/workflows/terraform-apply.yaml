@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Terraform and AWS
-        uses: ./.github/actions/setup-terraform
+        uses: ./.github/actions/setup-terraform-oidc
         with:
           aws-role-arn: ${{ inputs.aws_role_arn }}
           working-directory: ${{ inputs.working_directory }}
