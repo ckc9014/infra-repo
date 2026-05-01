@@ -21,4 +21,10 @@ This repository defines the core, shared infrastructure for my ML training and s
 - **CI/CD:** GithubActions, ARC (Actions Runner Controller), ArgoCD, Argo Rollouts
 - **Observability:** Prometheus
 
+### One‑time manual setup (required before deploying)
 
+- **S3 bucket** for Terraform remote state:  
+  Create manually (AWS Console or CLI) with a fixed, globally unique name.
+
+- **OIDC provider and IAM role** for GitHub Actions:  
+  Create the IAM OIDC provider and a role that GitHub Actions can assume.
