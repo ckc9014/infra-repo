@@ -1,0 +1,29 @@
+name: Terraform Plan (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        required: true
+        type: string
+      aws_role_arn:        
+        required: true
+        type: string
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Terraform and AWS
+        uses: ./.github/actions/setup-terraform
+        with:
+          aws-role-arn: ${{ inputs.aws_role_arn }}
+          working-directory: ${{ inputs.working_directory }}
+      - name: Terraform Plan
+        working-directory: ${{ inputs.working_directory }}
+        run: terraform plan -out=tfplan
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ inputs.working_directory }}/tfplan
