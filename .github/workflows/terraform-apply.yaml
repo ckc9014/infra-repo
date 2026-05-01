@@ -1,0 +1,29 @@
+name: Terraform Apply (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        required: true
+        type: string
+      aws_role_arn:
+        required: true
+        type: string
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Terraform and AWS
+        uses: ./.github/actions/setup-terraform
+        with:
+          aws-role-arn: ${{ inputs.aws_role_arn }}
+          working-directory: ${{ inputs.working_directory }}
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ inputs.working_directory }}
+      - name: Terraform Apply
+        working-directory: ${{ inputs.working_directory }}
+        run: terraform apply tfplan
