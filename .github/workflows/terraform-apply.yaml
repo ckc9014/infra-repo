@@ -9,6 +9,16 @@ on:
       aws_role_arn:
         required: true
         type: string
+      aws-region:
+       required: false
+       type: string
+       default: 'eu-west-1'
+      tf-state-bucket:
+        type: string
+        required: true
+      tf-state-key:
+        type: string
+        required: true
 
 jobs:
   apply:
@@ -20,6 +30,8 @@ jobs:
           aws-role-arn: ${{ inputs.aws_role_arn }}
           aws_region: ${{ vars.AWS_REGION }}
           working-directory: ${{ inputs.working_directory }}
+          tf-state-bucket: ${{ inputs.tf-state-bucket }}
+          tf-state-key: ${{ inputs.tf-state-key }}
       - name: Download plan artifact
         uses: actions/download-artifact@v4
         with:

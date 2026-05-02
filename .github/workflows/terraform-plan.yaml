@@ -9,6 +9,16 @@ on:
       aws_role_arn:        
         required: true
         type: string
+      aws-region:
+       required: false
+       type: string
+       default: 'eu-west-1'
+      tf-state-bucket:
+        type: string
+        required: true
+      tf-state-key:
+        type: string
+        required: true
 
 jobs:
   plan:
@@ -18,8 +28,10 @@ jobs:
         uses: ./.github/actions/setup-terraform-oidc
         with:
           aws-role-arn: ${{ inputs.aws_role_arn }}
-          aws_region: ${{ vars.AWS_REGION }}
+          aws_region: ${{ inputs.aws-region }}
           working-directory: ${{ inputs.working_directory }}
+          tf-state-bucket: ${{ inputs.tf-state-bucket }}
+          tf-state-key: ${{ inputs.tf-state-key }}
       - name: Terraform Plan
         working-directory: ${{ inputs.working_directory }}
         run: terraform plan -out=tfplan
