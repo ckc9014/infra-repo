@@ -13,6 +13,12 @@ inputs:
     required: false
     default: '.'
     description: 'Directory containing Terraform configuration (default: repository root)'
+  tf-state-bucket:
+    description:  'Name of the S3 bucket used for Terraform remote state'
+    required: true
+  tf-state-key:
+    description: 'Key (path) inside the S3 bucket for the Terraform state file'
+    required: true
 
 runs:
   using: 'composite'
@@ -27,5 +33,11 @@ runs:
         terraform_version: '1.11.0'     
     - name: Terraform Init
       working-directory: ${{ inputs.working-directory }}
-      run: terraform init
+      run:  |
+        terraform init \
+        -backend-config="bucket=${{ inputs.TF_STATE_BUCKET }}" \
+        -backend-config="key=${{ inputs.TF_STATE_KEY }}" \
+        -backend-config="region=${{ inputs.AWS_REGION }}" \
+        -backend-config="encrypt=true" \
+        -backend-config="use_lockfile=true"
       shell: bash
