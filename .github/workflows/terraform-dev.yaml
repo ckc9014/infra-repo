@@ -1,23 +1,34 @@
 name: Terraform Dev
 
 on:
-  push:
-    branches: [ dev ]
-    paths:
-      - 'terraform/**'
-  workflow_dispatch:   
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action (apply or destroy)'
+        required: true
+        type: choice
+        options:
+          - apply
+          - destroy
 
 jobs:
-  plan:
-    uses: ./.github/workflows/terraform-plan.yml
-    with:
-      working_directory: ./terraform
-      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
-      aws_region: ${{ vars.AWS_REGION }}
-  apply:
-    needs: plan
-    uses: ./.github/workflows/terraform-apply.yml
-    with:
-      working_directory: ./terraform
-      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
-      aws_region: ${{ vars.AWS_REGION }}
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform and AWS
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          working-directory: ./terraform
+
+      - name: Terraform ${{ github.event.inputs.action }}
+        working-directory: ./terraform
+        run: |
+          if [[ "${{ github.event.inputs.action }}" == "apply" ]]; then
+            terraform apply -auto-approve
+          else
+            terraform destroy -auto-approve
+          fi
