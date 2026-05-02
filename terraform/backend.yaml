@@ -1,4 +1,5 @@
-resource "aws_s3_bucket" "backend_bucket" {
-  bucket = "terraform-state-86250380 "
-  key = "infra-repo/prod/state.tfstate"
+terraform {
+  backend "s3" "backend"{
+
+  }
 }
