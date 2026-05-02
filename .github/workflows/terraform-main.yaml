@@ -4,12 +4,13 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - 'terraform/**'          
+      - 'terraform/**'
   push:
     branches: [ main ]
     paths:
-      - 'terraform/**'           
-
+      - 'terraform/**'
+  workflow_dispatch:   
+  
 jobs:
   plan:
     uses: ./.github/workflows/terraform-plan.yml
@@ -17,6 +18,9 @@ jobs:
       working_directory: ./terraform
       aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
       aws_region: ${{ vars.AWS_REGION }}
+      tf_state_bucket: ${{ vars.TF_STATE_BUCKET }}
+      # Use prod key only on main branch; otherwise dev key 
+      tf_state_key: ${{ github.ref == 'refs/heads/main' && 'infra/prod/terraform.tfstate' || 'infra/dev/terraform.tfstate' }}
 
   apply:
     needs: plan
@@ -26,3 +30,5 @@ jobs:
       working_directory: ./terraform
       aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
       aws_region: ${{ vars.AWS_REGION }}
+      tf_state_bucket: ${{ vars.TF_STATE_BUCKET }}
+      tf_state_key: ${{ github.ref == 'refs/heads/main' && 'infra/prod/terraform.tfstate' || 'infra/dev/terraform.tfstate' }}
