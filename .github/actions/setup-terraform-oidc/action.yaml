@@ -35,9 +35,9 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run:  |
         terraform init \
-        -backend-config="bucket=${{ inputs.TF_STATE_BUCKET }}" \
-        -backend-config="key=${{ inputs.TF_STATE_KEY }}" \
-        -backend-config="region=${{ inputs.AWS_REGION }}" \
+        -backend-config="bucket=${{ inputs.tf-state-bucket }}" \
+        -backend-config="key=${{ inputs.tf-state-key}}" \
+        -backend-config="region=${{ inputs.aws-region }}" \
         -backend-config="encrypt=true" \
         -backend-config="use_lockfile=true"
       shell: bash
