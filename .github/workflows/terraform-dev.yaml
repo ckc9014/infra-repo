@@ -23,6 +23,8 @@ jobs:
           aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
           working-directory: ./terraform
+          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+          tf-state-key: 'infra/dev/terraform.tfstate' 
 
       - name: Terraform ${{ github.event.inputs.action }}
         working-directory: ./terraform
