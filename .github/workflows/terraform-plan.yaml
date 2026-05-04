@@ -34,7 +34,12 @@ jobs:
           tf-state-key: ${{ inputs.tf-state-key }}
       - name: Terraform Plan
         working-directory: ${{ inputs.working_directory }}
-        run: terraform plan -out=tfplan
+        run:  |
+          VAR_FILE="envs/dev.tfvars"
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            VAR_FILE="envs/prod.tfvars"
+          fi
+          terraform plan -var-file="$VAR_FILE" -out=tfplan
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
