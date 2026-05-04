@@ -64,17 +64,16 @@ resource "aws_iam_role_policy_attachment" "karpenter_controller" {
   policy_arn = aws_iam_policy.karpenter_controller.arn
 }
 
-# 4. 🔗 EKS Pod Identity Association (The crucial new step!)
-# This links the IAM role to the service account 'karpenter' in the 'kube-system' namespace.
+# 4. EKS Pod Identity Association
+# This links the IAM role to the service account 'karpenter'
 resource "aws_eks_pod_identity_association" "karpenter" {
   cluster_name           = module.eks.cluster_name
   namespace              = "kube-system"
-  service_account        = "karpenter"            # The SA your Helm chart will use.
+  service_account        = "karpenter"            
   role_arn               = aws_iam_role.karpenter_controller.arn
 }
 
 # 5. IAM Role & Instance Profile for Karpenter Nodes (EC2 instances)
-# This part remains the same as before.
 resource "aws_iam_role" "karpenter_node" {
   name = "${local.name_prefix}-karpenter-node-role"
 
@@ -115,7 +114,7 @@ resource "aws_iam_instance_profile" "karpenter" {
   role = aws_iam_role.karpenter_node.name
 }
 
-# Output the role ARN for the ArgoCD Application
+# Output the role ARN for the ArgoCD Application (if necessary)
 output "karpenter_controller_role_arn" {
   description = "ARN of the Karpenter controller role (for Pod Identity)"
   value       = aws_iam_role.karpenter_controller.arn
