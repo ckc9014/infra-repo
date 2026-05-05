@@ -1,15 +1,13 @@
-# terraform/karpenter-helm.tf
-
 resource "helm_release" "karpenter" {
   name             = "karpenter"
   namespace        = "kube-system"
-  create_namespace = false # kube-system already exists
+  create_namespace = false 
 
   repository = "oci://public.ecr.aws/karpenter"
   chart      = "karpenter"
   version    = "v1.2.0"
 
-  # Ensure the cluster is ready and Helm provider is configured
+  
   depends_on = [module.eks]
 
   set = [
