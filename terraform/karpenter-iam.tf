@@ -9,11 +9,11 @@ resource "aws_iam_role" "karpenter_controller" {
       {
         Effect = "Allow"
         Principal = {
-          Service = "pods.eks.amazonaws.com"  
+          Service = "pods.eks.amazonaws.com"
         }
         Action = [
           "sts:AssumeRole",
-          "sts:TagSession"                    
+          "sts:TagSession"
         ]
       }
     ]
@@ -67,10 +67,10 @@ resource "aws_iam_role_policy_attachment" "karpenter_controller" {
 # 4. EKS Pod Identity Association
 # This links the IAM role to the service account 'karpenter'
 resource "aws_eks_pod_identity_association" "karpenter" {
-  cluster_name           = module.eks.cluster_name
-  namespace              = "kube-system"
-  service_account        = "karpenter"            
-  role_arn               = aws_iam_role.karpenter_controller.arn
+  cluster_name    = module.eks.cluster_name
+  namespace       = "kube-system"
+  service_account = "karpenter"
+  role_arn        = aws_iam_role.karpenter_controller.arn
 }
 
 # 5. IAM Role & Instance Profile for Karpenter Nodes (EC2 instances)

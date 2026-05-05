@@ -11,7 +11,7 @@ module "eks" {
   # Enable IAM Roles for Service Accounts (IRSA)
   enable_irsa = true
 
-  
+
   authentication_mode = "API_AND_CONFIG_MAP"
 
   # Tags that Karpenter uses to discover resources.
