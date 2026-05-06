@@ -1,0 +1,67 @@
+prometheus:
+  prometheusSpec:
+    # Data retention
+    retention: 15d
+    retentionSize: 40GB
+
+    # Resource requests and limits
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 2
+        memory: 4Gi
+
+    # Persistent storage for metrics
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3          # EBS gp3 is default on EKS
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+
+    # Allow Prometheus to discover ServiceMonitors and PodMonitors across all namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+# Grafana configuration
+grafana:
+  enabled: true
+  adminPassword: admin          # Change this in production!
+  persistence:
+    enabled: true
+    size: 10Gi
+  ingress:
+    enabled: false              
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+      searchNamespace: ALL
+
+# Alertmanager configuration 
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+# Node exporter (collects host metrics)
+nodeExporter:
+  enabled: true
+
+# kube-state-metrics (collects Kubernetes object metrics)
+kubeStateMetrics:
+  enabled: true
