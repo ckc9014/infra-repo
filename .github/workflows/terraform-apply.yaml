@@ -23,6 +23,9 @@ on:
 jobs:
   apply:
     runs-on: ubuntu-latest
+    outputs:
+      cluster_name: ${{ steps.get_cluster.outputs.cluster_name }}
+      cluster_endpoint: ${{ steps.get_cluster.outputs.cluster_endpoint }}
     steps:
       - name: Setup Terraform and AWS
         uses: ./.github/actions/setup-terraform-oidc
@@ -40,3 +43,10 @@ jobs:
       - name: Terraform Apply
         working-directory: ${{ inputs.working_directory }}
         run: terraform apply tfplan
+        
+      - name: Get cluster name and endpoint from Terraform
+        id: get_cluster
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
+          echo "cluster_endpoint=$(terraform output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
