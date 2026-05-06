@@ -3,7 +3,7 @@ operator:
 
 driver:
   enabled: true
-  version: "535.129.03"        
+  version: "550.144.03"        
 
 toolkit:
   enabled: true
