@@ -38,3 +38,31 @@ jobs:
           else
             terraform destroy -auto-approve -var-file="envs/dev.tfvars" 
           fi
+      - name: Get EKS cluster name and endpoint
+        if: github.event.inputs.action == 'apply'
+        id: get_cluster
+        working-directory: ./terraform
+        run: |
+          echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
+          echo "cluster_endpoint=$(terraform output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
+
+      - name: Configure kubectl for EKS
+        if: github.event.inputs.action == 'apply'
+        run: |
+          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
+
+      - name: Create ARC GitHub App secret in cluster
+        if: github.event.inputs.action == 'apply'
+        run: |
+          # Ensure namespace exists (idempotent)
+          kubectl create namespace arc-systems --dry-run=client -o yaml | kubectl apply -f -
+          # Create secret (idempotent)
+          kubectl create secret generic github-app-auth \
+            -n arc-systems \
+            --dry-run=client \
+            --from-literal=cluster_name=${{ steps.get_cluster.outputs.cluster_name }} \
+            --from-literal=cluster_endpoint=${{ steps.get_cluster.outputs.cluster_endpoint }} \
+            --from-literal=github_app_id=${{ secrets.GITHUB_APP_ID }} \
+            --from-literal=github_app_installation_id=${{ secrets.GITHUB_APP_INSTALLATION_ID }} \
+            --from-literal=github_app_private_key="${{ secrets.GITHUB_APP_PRIVATE_KEY }}" \
+            -o yaml | kubectl apply -f -
