@@ -1,0 +1,22 @@
+
+githubConfigUrl: https://github.com/your-org   
+configSecret:
+  name: github-app-auth                 
+
+# Runner scale set label (used in `runs-on:` in your workflows)
+runnerScaleSetName: gpu-runner-set
+
+# Controller service account
+serviceAccount:
+  name: arc-controller-sa
+
+# Prevent Argo CD from overriding labels (essential for ARC)
+flags:
+  excludeLabelPropagationPrefixes:
+    - "argocd.argoproj.io/instance"
+    - "app.kubernetes.io/component"
+    - "app.kubernetes.io/instance"
+    - "app.kubernetes.io/managed-by"
+    - "app.kubernetes.io/name"
+    - "app.kubernetes.io/part-of"
+    - "app.kubernetes.io/version"
