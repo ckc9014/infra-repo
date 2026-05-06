@@ -27,6 +27,8 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    dependsOn:
+    - monitoring-stack 
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
