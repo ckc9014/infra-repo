@@ -1,0 +1,24 @@
+operator:
+  defaultRuntime: containerd   #recommended runtime for eks
+
+driver:
+  enabled: true
+  version: "535.129.03"        
+
+toolkit:
+  enabled: true
+
+devicePlugin:
+  enabled: true
+
+dcgmExporter:                   # collects detailed GPU telemetry
+  enabled: true
+
+serviceMonitor:
+  enabled: true                 # Exposes GPU metrics to Prometheus
+
+migManager:
+  enabled: false                # not support for g4dn.xlarge
+
+nodeStatusExporter:
+  enabled: true

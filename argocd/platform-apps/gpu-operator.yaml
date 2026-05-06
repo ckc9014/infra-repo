@@ -7,29 +7,19 @@ metadata:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: https://helm.ngc.nvidia.com/nvidia
+  sources:
+  # Source 1: The public GPU Operator Helm chart
+  - repoURL: https://helm.ngc.nvidia.com/nvidia
     chart: gpu-operator
     targetRevision: v26.3.1
     helm:
-      values: |
-        operator:
-          defaultRuntime: containerd
-        driver:
-          enabled: true
-          version: "550.144.03"
-        toolkit:
-          enabled: true
-        devicePlugin:
-          enabled: true
-        dcgmExporter:
-          enabled: true
-        serviceMonitor:
-          enabled: true
-        migManager:
-          enabled: false
-        nodeStatusExporter:
-          enabled: true
+      valueFiles:
+      - $values/values/gpu-operator/values.yaml
+
+  # Source 2: Path containing the values file
+  - repoURL: https://github.com/ckc9014/infra-repo.git
+    targetRevision: main
+    ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: gpu-operator
