@@ -64,3 +64,28 @@ jobs:
             --from-literal=github_app_installation_id=${{ secrets.ARC_APP_INSTALLATION_ID }} \
             --from-literal=github_app_private_key="${{ secrets.ARC_APP_PRIVATE_KEY }}" \
             -o yaml | kubectl apply -f -
+
+
+           
+      - name: Wait for core components
+        if: github.event.inputs.action == 'apply'
+        run: |
+          kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd || echo "ArgoCD not ready yet"
+          kubectl wait --for=condition=available --timeout=180s deployment/karpenter -n kube-system || echo "Karpenter not ready yet"
+
+      - name: Check ArgoCD Applications
+        if: github.event.inputs.action == 'apply'
+        run: kubectl get applications -n argocd -o wide
+
+      - name: Check pod status for key namespaces
+        if: github.event.inputs.action == 'apply'
+        run: |
+          echo "=== GPU Operator ==="
+          kubectl get pods -n gpu-operator 2>/dev/null || echo "installation not success"
+          echo "=== Prometheus stack ==="
+          kubectl get pods -n monitoring 2>/dev/null || echo "installation not success"
+          echo "=== ARC controller ==="
+          kubectl get pods -n arc-systems 2>/dev/null || echo "installation not success"
+          echo "=== Argo Rollouts ==="
+          kubectl get pods -n argo-rollouts 2>/dev/null || echo "installation not success"
+      
