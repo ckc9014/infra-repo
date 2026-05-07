@@ -81,11 +81,11 @@ jobs:
         if: github.event.inputs.action == 'apply'
         run: |
           echo "=== GPU Operator ==="
-          kubectl get pods -n gpu-operator 2>/dev/null || echo "installation not success"
+          kubectl get pods -n gpu-operator 2>/dev/null || echo "installation failed"
           echo "=== Prometheus stack ==="
-          kubectl get pods -n monitoring 2>/dev/null || echo "installation not success"
+          kubectl get pods -n monitoring 2>/dev/null || echo "installation failed"
           echo "=== ARC controller ==="
-          kubectl get pods -n arc-systems 2>/dev/null || echo "installation not success"
+          kubectl get pods -n arc-systems 2>/dev/null || echo "installation failed"
           echo "=== Argo Rollouts ==="
-          kubectl get pods -n argo-rollouts 2>/dev/null || echo "installation not success"
+          kubectl get pods -n argo-rollouts 2>/dev/null || echo "installation failed"
       
