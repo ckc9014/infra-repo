@@ -53,7 +53,7 @@ jobs:
             --dry-run=client \
             --from-literal=cluster_name=${{ needs.apply.outputs.cluster_name }} \
             --from-literal=cluster_endpoint=${{ needs.apply.outputs.cluster_endpoint }} \
-            --from-literal=github_app_id=${{ secrets.GITHUB_APP_ID }} \
-            --from-literal=github_app_installation_id=${{ secrets.GITHUB_APP_INSTALLATION_ID }} \
-            --from-literal=github_app_private_key="${{ secrets.GITHUB_APP_PRIVATE_KEY }}" \
+            --from-literal=github_app_id=${{ secrets.ARC_APP_ID }} \
+            --from-literal=github_app_installation_id=${{ secrets.ARC_APP_INSTALLATION_ID }} \
+            --from-literal=github_app_private_key="${{ secrets.ARC_APP_PRIVATE_KEY }}" \
             -o yaml | kubectl apply -f -
