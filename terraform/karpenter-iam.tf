@@ -114,8 +114,3 @@ resource "aws_iam_instance_profile" "karpenter" {
   role = aws_iam_role.karpenter_node.name
 }
 
-# Output the role ARN for the ArgoCD Application (if necessary)
-output "karpenter_controller_role_arn" {
-  description = "ARN of the Karpenter controller role (for Pod Identity)"
-  value       = aws_iam_role.karpenter_controller.arn
-}
