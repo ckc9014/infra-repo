@@ -9,11 +9,11 @@ resource "kubernetes_manifest" "platform_root" {
 }
 
 resource "kubernetes_manifest" "karpenter_nodepool" {
-  depends_on = [helm_release.karpenter]   
+  depends_on = [helm_release.karpenter, aws_iam_role.karpenter_node]   
   manifest   = yamldecode(local.nodepool_manifest)
 }
 
 resource "kubernetes_manifest" "karpenter_ec2nodeclass" {
-  depends_on = [helm_release.karpenter]
+  depends_on = [helm_release.karpenter, aws_iam_role.karpenter_node]
   manifest   = yamldecode(local.ec2nodeclass_manifest)
 }
