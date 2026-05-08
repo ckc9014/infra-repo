@@ -5,7 +5,7 @@ resource "helm_release" "karpenter" {
 
   repository = "oci://public.ecr.aws/karpenter"
   chart      = "karpenter"
-  version    = "v1.2.0"
+  version    = "1.10.0"
 
   
   depends_on = [module.eks]
