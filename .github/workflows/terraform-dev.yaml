@@ -45,11 +45,38 @@ jobs:
         run: |
           echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
           echo "cluster_endpoint=$(terraform output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
+          
+
 
       - name: Configure kubectl for EKS
         if: github.event.inputs.action == 'apply'
         run: |
           aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
+
+
+      - name: Apply ArgoCD root Applications
+        run: |
+          kubectl apply -f argocd/apps-root.yaml
+          kubectl apply -f argocd/platform-root.yaml
+
+      
+      - name: Get Karpenter node role name
+        if: github.event.inputs.action == 'apply'
+        id: get_karpenter_role
+        working-directory: ./terraform
+        run: |
+         echo "role_name=$(terraform output -raw karpenter_node_role_name)" >> $GITHUB_OUTPUT
+         
+      - name: Apply Karpenter NodePool and EC2NodeClass
+        run: |
+           envsubst < karpenter/ec2nodeclass.yaml.tmpl > karpenter/ec2nodeclass.yaml
+           cp karpenter/nodepool.yaml.tmpl karpenter/nodepool.yaml
+           kubectl apply -f karpenter/nodepool.yaml
+           kubectl apply -f karpenter/ec2nodeclass.yaml
+      
+        env:
+          cluster_name: ${{ steps.get_cluster.outputs.cluster_name }}
+          karpenter_node_role: ${{ steps.get_karpenter_role.outputs.role_name }}
 
       - name: Create ARC GitHub App secret in cluster
         if: github.event.inputs.action == 'apply'
