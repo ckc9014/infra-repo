@@ -19,7 +19,7 @@ jobs:
   plan:
     uses: ./.github/workflows/terraform-plan.yaml
     with:
-      working_directory: ./terraform
+      working_directory: ./terraform/infrastructure
       aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
       aws_region: ${{ vars.AWS_REGION }}
       tf_state_bucket: ${{ vars.TF_STATE_BUCKET }}
