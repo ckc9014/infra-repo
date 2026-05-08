@@ -17,6 +17,10 @@ terraform {
   }
 }
 
+provider "aws"{
+  region = vars.aws_region
+}
+
 data "aws_eks_cluster" "cluster" {
   name = local.cluster_name
   depends_on = [module.eks]   
