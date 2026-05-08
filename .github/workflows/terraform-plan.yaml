@@ -30,8 +30,8 @@ jobs:
           aws-role-arn: ${{ inputs.aws_role_arn }}
           aws_region: ${{ inputs.aws-region }}
           working-directory: ${{ inputs.working_directory }}
-          tf_state_bucket: ${{ inputs.tf-state-bucket }}
-          tf_state_key:  ${{ inputs.tf-state-key }}
+          tf-state-bucket: ${{ inputs.tf-state-bucket }}
+          tf-state-key:  ${{ inputs.tf-state-key }}
       - name: Terraform Plan
         working-directory: ${{ inputs.working_directory }}
         run:  |
