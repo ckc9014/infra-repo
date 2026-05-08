@@ -22,9 +22,9 @@ jobs:
       working_directory: ./terraform/infrastructure
       aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
       aws_region: ${{ vars.AWS_REGION }}
-      tf_state_bucket: ${{ vars.TF_STATE_BUCKET }}
-      # Use prod key only on main branch; otherwise dev key 
-      tf_state_key: ${{ github.ref == 'refs/heads/main' && 'infra/prod/terraform.tfstate' || 'infra/dev/terraform.tfstate' }}
+      # tf_state_bucket: ${{ vars.TF_STATE_BUCKET }}
+      # # Use prod key only on main branch; otherwise dev key 
+      # tf_state_key: ${{ github.ref == 'refs/heads/main' && 'infra/prod/terraform.tfstate' || 'infra/dev/terraform.tfstate' }}
 
   apply:
     needs: plan
