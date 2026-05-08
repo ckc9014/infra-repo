@@ -34,9 +34,9 @@ jobs:
         working-directory: ./terraform
         run: |
           if [[ "${{ github.event.inputs.action }}" == "apply" ]]; then
-            terraform apply -auto-approve -var-file="envs/dev.tfvars" 
+            terraform apply -auto-approve -var-file="infrastructure/envs/dev.tfvars" 
           else
-            terraform destroy -auto-approve -var-file="envs/dev.tfvars" 
+            terraform destroy -auto-approve -var-file="infrastructure/envs/dev.tfvars" 
           fi
       # - name: Get EKS cluster name and endpoint
       #   if: github.event.inputs.action == 'apply'
