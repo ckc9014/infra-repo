@@ -44,9 +44,9 @@ jobs:
         working-directory: ${{ inputs.working_directory }}
         run: terraform apply tfplan
         
-      - name: Get cluster name and endpoint from Terraform
-        id: get_cluster
-        working-directory: ${{ inputs.working_directory }}
-        run: |
-          echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
-          echo "cluster_endpoint=$(terraform output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
+      # - name: Get cluster name and endpoint from Terraform
+      #   id: get_cluster
+      #   working-directory: ${{ inputs.working_directory }}
+      #   run: |
+      #     echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
+      #     echo "cluster_endpoint=$(terraform output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
