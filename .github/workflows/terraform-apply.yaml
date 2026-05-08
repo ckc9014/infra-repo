@@ -23,9 +23,9 @@ on:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    outputs:
-      cluster_name: ${{ steps.get_cluster.outputs.cluster_name }}
-      cluster_endpoint: ${{ steps.get_cluster.outputs.cluster_endpoint }}
+    # outputs:
+    #   cluster_name: ${{ steps.get_cluster.outputs.cluster_name }}
+    #   cluster_endpoint: ${{ steps.get_cluster.outputs.cluster_endpoint }}
     steps:
       - name: Setup Terraform and AWS
         uses: ./.github/actions/setup-terraform-oidc
