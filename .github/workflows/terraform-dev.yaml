@@ -31,7 +31,7 @@ jobs:
           tf-state-key: 'infra/dev/terraform.tfstate' 
 
       - name: Terraform ${{ github.event.inputs.action }}
-        working-directory: ./terraform
+        working-directory: ./terraform/infrastructure
         run: |
           if [[ "${{ github.event.inputs.action }}" == "apply" ]]; then
             terraform apply -auto-approve -var-file="infrastructure/envs/dev.tfvars" 
