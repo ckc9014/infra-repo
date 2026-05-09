@@ -31,8 +31,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/terraform-apply.yaml
     with:
-      working_directory: ./terraform/infrastructure
-      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
+      working-directory: ./terraform/infrastructure
+      aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: ${{ github.ref == 'refs/heads/main' && 'infra/prod/terraform.tfstate' || 'infra/dev/terraform.tfstate' }}
