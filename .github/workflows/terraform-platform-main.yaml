@@ -1,0 +1,40 @@
+name: Apply Platform (ArgoCD, Karpenter, etc.)
+
+on:
+  workflow_dispatch:          # manual trigger
+  push:
+    branches: [ main ]
+    paths:
+      - 'terraform/platform/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/platform/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  plan:
+    uses: ./.github/workflows/terraform-plan.yaml
+    with:
+      working_directory: ./terraform/platform
+      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
+      aws_region: ${{ vars.AWS_REGION }}
+      tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+      # Use separate state keys for platform (dev/prod)
+      tf-state-key: ${{ github.ref == 'refs/heads/main' && 'platform/prod/terraform.tfstate' || 'platform/dev/terraform.tfstate' }}
+
+  apply:
+    needs: plan
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch')
+    uses: ./.github/workflows/terraform-apply.yaml
+    with:
+      working_directory: ./terraform/platform
+      aws_role_arn: ${{ vars.AWS_ROLE_ARN }}
+      aws_region: ${{ vars.AWS_REGION }}
+      tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+      tf-state-key: ${{ github.ref == 'refs/heads/main' && 'platform/prod/terraform.tfstate' || 'platform/dev/terraform.tfstate' }}
