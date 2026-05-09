@@ -2,14 +2,25 @@ name: Destroy Infrastructure
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (dev/prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options: ['dev', 'prod']
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
+  env:
+    uses: ./.github/workflows/determine-env.yaml
+
   destroy:
     runs-on: ubuntu-latest
+    needs: env
     steps:
       - uses: actions/checkout@v4
 
@@ -20,8 +31,8 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           working-directory: ./terraform/infrastructure
           tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-          tf-state-key: ${{ github.ref == 'refs/heads/main' && 'infra/prod/terraform.tfstate' || 'infra/dev/terraform.tfstate' }}
+          tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
 
       - name: Terraform Destroy
         working-directory: ./terraform/infrastructure
-        run: terraform destroy -auto-approve -var-file="envs/${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}.tfvars"
+        run: terraform destroy -auto-approve -var-file="envs/${{ needs.env.outputs.environment }}.tfvars"
