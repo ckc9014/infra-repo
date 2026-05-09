@@ -3,10 +3,10 @@ name: Terraform Apply (Reusable)
 on:
   workflow_call:
     inputs:
-      working_directory:
+      working-directory:
         required: true
         type: string
-      aws_role_arn:
+      aws-role-arn:
         required: true
         type: string
       aws-region:
@@ -30,18 +30,18 @@ jobs:
       - name: Setup Terraform and AWS
         uses: ./.github/actions/setup-terraform-oidc
         with:
-          aws-role-arn: ${{ inputs.aws_role_arn }}
+          aws-role-arn: ${{ inputs.aws-role-arn }}
           aws_region: ${{ inputs.aws-region }}
-          working-directory: ${{ inputs.working_directory }}
+          working-directory: ${{ inputs.working-directory }}
           tf-state-bucket: ${{ inputs.tf-state-bucket }}
           tf-state-key: ${{ inputs.tf-state-key }}
       - name: Download plan artifact
         uses: actions/download-artifact@v4
         with:
           name: tfplan
-          path: ${{ inputs.working_directory }}
+          path: ${{ inputs.working-directory }}
       - name: Terraform Apply
-        working-directory: ${{ inputs.working_directory }}
+        working-directory: ${{ inputs.working-directory }}
         run: terraform apply tfplan
         
       # - name: Get cluster name and endpoint from Terraform
