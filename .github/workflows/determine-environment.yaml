@@ -1,0 +1,26 @@
+name: Determine Environment
+
+on:
+  workflow_call:
+    outputs:
+      environment:
+        description: 'Determined environment (dev or prod)'
+        value: ${{ jobs.determine.outputs.env }}
+
+jobs:
+  determine:
+    runs-on: ubuntu-latest
+    outputs:
+      env: ${{ steps.set-env.outputs.env }}
+    steps:
+      - name: Determine environment
+        id: set-env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            ENV="prod"
+          else
+            ENV="dev"
+          fi
+          echo "env=$ENV" >> $GITHUB_OUTPUT
