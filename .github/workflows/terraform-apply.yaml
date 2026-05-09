@@ -32,7 +32,7 @@ jobs:
         uses: ./.github/actions/setup-terraform-oidc
         with:
           aws-role-arn: ${{ inputs.aws-role-arn }}
-          aws_region: ${{ inputs.aws-region }}
+          aws-region: ${{ inputs.aws-region }}
           working-directory: ${{ inputs.working-directory }}
           tf-state-bucket: ${{ inputs.tf-state-bucket }}
           tf-state-key: ${{ inputs.tf-state-key }}
