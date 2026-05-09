@@ -27,6 +27,7 @@ jobs:
     #   cluster_name: ${{ steps.get_cluster.outputs.cluster_name }}
     #   cluster_endpoint: ${{ steps.get_cluster.outputs.cluster_endpoint }}
     steps:
+      - uses: actions/checkout@v4
       - name: Setup Terraform and AWS
         uses: ./.github/actions/setup-terraform-oidc
         with:
