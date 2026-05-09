@@ -1,33 +1,43 @@
-name: Terraform CI/CD
+name: Apply Infrastructure (VPC + EKS)
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'terraform/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (dev/prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options: ['dev', 'prod']
   push:
     branches: [ main ]
     paths:
-      - 'terraform/**'
-  workflow_dispatch:   
+      - 'terraform/infrastructure/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/infrastructure/**'
 
 permissions:
-  id-token: write   # Required for OIDC authentication
-  contents: read 
-  
+  id-token: write
+  contents: read
+
 jobs:
+  env:
+    uses: ./.github/workflows/determine-environment.yaml
+
   plan:
+    needs: env
     uses: ./.github/workflows/terraform-plan.yaml
     with:
       working-directory: ./terraform/infrastructure
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      # Use prod key only on main branch; otherwise dev key 
-      tf-state-key: ${{ github.ref == 'refs/heads/main' && 'infra/prod/terraform.tfstate' || 'infra/dev/terraform.tfstate' }}
+      tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
 
   apply:
-    needs: plan
+    needs: [env, plan]
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch')
@@ -37,7 +47,7 @@ jobs:
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: ${{ github.ref == 'refs/heads/main' && 'infra/prod/terraform.tfstate' || 'infra/dev/terraform.tfstate' }}
+      tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
       
   # create_arc_secret:
   #   runs-on: ubuntu-latest
