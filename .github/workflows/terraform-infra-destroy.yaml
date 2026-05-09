@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   env:
-    uses: ./.github/workflows/determine-env.yaml
+    uses: ./.github/workflows/determine-environment.yaml
 
   destroy:
     runs-on: ubuntu-latest
