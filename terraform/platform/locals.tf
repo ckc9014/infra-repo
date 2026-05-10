@@ -7,3 +7,8 @@ locals {
     karpenter_node_role = data.terraform_remote_state.infra.outputs.karpenter_node_role_name
   })
 }
+
+locals {
+  apps_root_path     = "${path.module}/../../argocd/apps-root.yaml"
+  platform_root_path = "${path.module}/../../argocd/platform-root.yaml"
+}
