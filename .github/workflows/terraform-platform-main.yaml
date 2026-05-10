@@ -1,0 +1,11 @@
+name: Apply Platform (ArgoCD, Karpenter, etc.)
+
+on:
+  workflow_dispatch:
+ 
+
+jobs:
+  dummy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "I'm just a placeholder"
