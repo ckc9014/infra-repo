@@ -1,0 +1,38 @@
+name: Destroy Platform (ArgoCD, Karpenter, etc.)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (dev/prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options: ['dev', 'prod']
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  env:
+    uses: ./.github/workflows/determine-environment.yaml
+
+  destroy:
+    runs-on: ubuntu-latest
+    needs: env
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform and AWS
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          working-directory: ./terraform/platform
+          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+          tf-state-key: platform/${{ needs.env.outputs.environment }}/terraform.tfstate
+
+      - name: Terraform Destroy
+        working-directory: ./terraform/platform
+        run: terraform destroy -auto-approve -var="environment=${{ needs.env.outputs.environment }}"
