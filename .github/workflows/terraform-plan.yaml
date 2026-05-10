@@ -27,6 +27,7 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Setup Terraform and AWS
         uses: ./.github/actions/setup-terraform-oidc
         with:
