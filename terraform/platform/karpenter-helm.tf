@@ -7,9 +7,6 @@ resource "helm_release" "karpenter" {
   chart      = "karpenter"
   version    = "1.10.0"
 
-  
-  depends_on = [module.eks]
-
   set = [
     {
       name  = "serviceAccount.create"
@@ -21,15 +18,11 @@ resource "helm_release" "karpenter" {
     },
     {
       name  = "settings.clusterName"
-      value = module.eks.cluster_name
+      value = data.terraform_remote_state.infra.outputs.cluster_name
     },
     {
       name  = "settings.clusterEndpoint"
-      value = module.eks.cluster_endpoint
-    },
-    {
-      name  = "settings.interruptionQueue"
-      value = "" # optional, can be set later
+      value = data.terraform_remote_state.infra.outputs.cluster_endpoint
     },
     {
       name  = "webhook.enabled"
