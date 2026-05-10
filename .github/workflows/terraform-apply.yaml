@@ -3,16 +3,16 @@ name: Terraform Apply (Reusable)
 on:
   workflow_call:
     inputs:
-      working-directory:
+      working_directory:
         required: true
         type: string
-      aws-role-arn:
+      aws_role_arn:
         required: true
         type: string
       aws-region:
-       required: false
-       type: string
-       default: 'eu-west-1'
+        required: false
+        type: string
+        default: 'eu-west-1'
       tf-state-bucket:
         type: string
         required: true
@@ -23,31 +23,23 @@ on:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    # outputs:
-    #   cluster_name: ${{ steps.get_cluster.outputs.cluster_name }}
-    #   cluster_endpoint: ${{ steps.get_cluster.outputs.cluster_endpoint }}
     steps:
-      - uses: actions/checkout@v4
       - name: Setup Terraform and AWS
         uses: ./.github/actions/setup-terraform-oidc
         with:
-          aws-role-arn: ${{ inputs.aws-role-arn }}
+          aws-role-arn: ${{ inputs.aws_role_arn }}
           aws-region: ${{ inputs.aws-region }}
-          working-directory: ${{ inputs.working-directory }}
+          working-directory: ${{ inputs.working_directory }}
           tf-state-bucket: ${{ inputs.tf-state-bucket }}
           tf-state-key: ${{ inputs.tf-state-key }}
+
       - name: Download plan artifact
         uses: actions/download-artifact@v4
         with:
           name: tfplan
-          path: ${{ inputs.working-directory }}
+          path: ${{ inputs.working_directory }}
+
       - name: Terraform Apply
-        working-directory: ${{ inputs.working-directory }}
+        working-directory: ${{ inputs.working_directory }}
         run: terraform apply tfplan
         
-      # - name: Get cluster name and endpoint from Terraform
-      #   id: get_cluster
-      #   working-directory: ${{ inputs.working_directory }}
-      #   run: |
-      #     echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
-      #     echo "cluster_endpoint=$(terraform output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
