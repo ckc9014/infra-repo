@@ -7,9 +7,6 @@ resource "helm_release" "argocd" {
   chart      = "argo-cd"
   version    = "7.7.18"
 
-  # Ensure the EKS cluster is ready before installing ArgoCD
-  depends_on = [module.eks]
-
   set = [
     {
       name  = "server.insecure"
