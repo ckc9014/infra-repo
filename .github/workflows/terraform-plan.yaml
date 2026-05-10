@@ -3,46 +3,46 @@ name: Terraform Plan (Reusable)
 on:
   workflow_call:
     inputs:
-      working-directory:
+      working_directory:
         required: true
         type: string
-      aws-role-arn:        
+      aws_role_arn:
         required: true
         type: string
       aws-region:
-       required: false
-       type: string
-       default: 'eu-west-1'
+        required: false
+        type: string
+        default: 'eu-west-1'
       tf-state-bucket:
         type: string
         required: true
       tf-state-key:
         type: string
         required: true
+      environment:
+        required: true
+        type: string
 
 jobs:
   plan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Setup Terraform and AWS
         uses: ./.github/actions/setup-terraform-oidc
         with:
-          aws-role-arn: ${{ inputs.aws-role-arn }}
+          aws-role-arn: ${{ inputs.aws_role_arn }}
           aws-region: ${{ inputs.aws-region }}
-          working-directory: ${{ inputs.working-directory }}
+          working-directory: ${{ inputs.working_directory }}
           tf-state-bucket: ${{ inputs.tf-state-bucket }}
-          tf-state-key:  ${{ inputs.tf-state-key }}
+          tf-state-key: ${{ inputs.tf-state-key }}
+
       - name: Terraform Plan
-        working-directory: ${{ inputs.working-directory }}
-        run:  |
-          VAR_FILE="envs/dev.tfvars"
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            VAR_FILE="envs/prod.tfvars"
-          fi
-          terraform plan -var-file="$VAR_FILE" -out=tfplan
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          terraform plan -out=tfplan -var-file="envs/${{ inputs.environment }}.tfvars"
+
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
-          path: ${{ inputs.working-directory }}/tfplan
+          path: ${{ inputs.working_directory }}/tfplan
