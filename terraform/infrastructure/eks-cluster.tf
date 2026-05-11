@@ -33,10 +33,11 @@ module "eks" {
     system = {
       name = "system-node-group"
       instance_types = ["t3.small"]
+
+      desired_size = 2
       min_size     = 2
       max_size     = 3
-      desired_size = 2
-
+      
       subnet_ids = module.vpc.private_subnets
 
       tags = {
