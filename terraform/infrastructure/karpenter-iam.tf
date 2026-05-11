@@ -41,6 +41,9 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:TerminateInstances",
           "ec2:DescribeImages",
           "ec2:DescribeInstanceTypes",
+          "ec2:DescribeInstanceTypeOfferings", 
+          "ec2:DescribeAvailabilityZones",     
+          "ec2:DescribeSpotPriceHistory",        
           "ec2:CreateTags",
           "ec2:DeleteTags",
           "ec2:DescribeSubnets",
@@ -50,7 +53,8 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:DeleteLaunchTemplate",
           "iam:PassRole",
           "iam:GetInstanceProfile",
-          "eks:DescribeCluster"
+          "eks:DescribeCluster",
+          "ssm:GetParameter"    
         ]
         Resource = "*"
       }
