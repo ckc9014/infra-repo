@@ -15,6 +15,22 @@ module "eks" {
 
   authentication_mode = "API_AND_CONFIG_MAP"
 
+  cluster_addons = {
+    eks-pod-identity-agent = {
+      most_recent = true
+    }
+    
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+  }
+
   # Tags that Karpenter uses to discover resources.
   cluster_tags = {
     "karpenter.sh/discovery" = local.name_prefix
