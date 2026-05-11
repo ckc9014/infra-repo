@@ -51,6 +51,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
+      artifact-name: tfplan-crds
 
   plan-manifests:
     needs: [env, apply-crds]  
@@ -76,6 +77,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
+      artifact-name: tfplan-manifests
 
   create-and-verify:
     runs-on: ubuntu-latest
