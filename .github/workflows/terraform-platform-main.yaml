@@ -36,8 +36,7 @@ jobs:
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: platform/${{ needs.env.outputs.environment }}/terraform.tfstate
       environment: ${{ needs.env.outputs.environment }}
-      tf_state_bucket_var: ${{ vars.TF_STATE_BUCKET }}
-      aws_region_var: ${{ vars.AWS_REGION }}
+
 
   apply:
     needs: [env, plan]
