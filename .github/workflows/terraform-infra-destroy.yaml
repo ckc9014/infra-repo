@@ -41,3 +41,4 @@ jobs:
           -var="environment=${{ inputs.environment }}" \
           -var="tf_state_bucket=${{ inputs.tf_state_bucket }}" \
           -var="aws_region=${{ inputs.aws_region }}"
+          -var="github_actions_role_arn=${{ inputs.aws-role-arn }}"

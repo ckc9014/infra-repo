@@ -24,6 +24,7 @@ on:
         type: string
 
 
+
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -45,8 +46,10 @@ jobs:
           -var-file="envs/${{ inputs.environment }}.tfvars" \
           -var="environment=${{ inputs.environment }}" \
           -var="tf_state_bucket=${{ inputs.tf_state_bucket }}" \
-          -var="aws_region=${{ inputs.aws_region }}"
+          -var="aws_region=${{ inputs.aws_region }}" \
+          -var="github_actions_role_arn=${{ inputs.aws-role-arn }}"
           
+
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:

@@ -36,8 +36,7 @@
         tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
         tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
         environment: ${{ needs.env.outputs.environment }}
-
-
+   
     apply:
       needs: [env, plan]
       if: |
