@@ -45,8 +45,8 @@ jobs:
           terraform plan -out=tfplan \
           -var-file="envs/${{ inputs.environment }}.tfvars" \
           -var="environment=${{ inputs.environment }}" \
-          -var="tf_state_bucket=${{ inputs.tf_state_bucket }}" \
-          -var="aws_region=${{ inputs.aws_region }}" \
+          -var="tf_state_bucket=${{ inputs.tf-state-bucket }}" \
+          -var="aws_region=${{ inputs.aws-region }}" \
           -var="github_actions_role_arn=${{ inputs.aws-role-arn }}"
           
 
