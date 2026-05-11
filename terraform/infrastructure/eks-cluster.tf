@@ -33,7 +33,7 @@ module "eks" {
 
   # Tags that Karpenter uses to discover resources.
   cluster_tags = {
-    "karpenter.sh/discovery" = local.name_prefix
+    "karpenter.sh/discovery" = local.cluster_name
   }
 
   tags = {
