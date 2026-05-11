@@ -19,6 +19,10 @@ on:
       tf-state-key:
         type: string
         required: true
+      artifact-name:
+        required: false
+        type: string
+        default: 'tfplan'
 
 jobs:
   apply:
@@ -37,7 +41,7 @@ jobs:
       - name: Download plan artifact
         uses: actions/download-artifact@v4
         with:
-          name: tfplan
+          name: ${{ inputs.artifact-name }}
           path: ${{ inputs.working-directory }}
 
       - name: Terraform Apply

@@ -22,6 +22,10 @@ on:
       environment:
         required: true
         type: string
+      artifact-name:
+        required: false
+        type: string
+        default: 'tfplan'
 
 
 
@@ -53,5 +57,5 @@ jobs:
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan
+          name: ${{ inputs.artifact-name }}
           path: ${{ inputs.working-directory }}/tfplan
