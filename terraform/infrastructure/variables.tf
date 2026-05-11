@@ -56,3 +56,7 @@ variable "tf_state_bucket" {
   description = "Name of the S3 bucket used for Terraform remote state (passed from workflow)"
   type        = string
 }
+
+variable "github_actions_role_arn" {
+  type        = string
+}
