@@ -51,3 +51,8 @@ variable "aws_region" {
   default     = "eu-west-1" 
 
 }
+
+variable "tf_state_bucket" {
+  description = "Name of the S3 bucket used for Terraform remote state (passed from workflow)"
+  type        = string
+}
