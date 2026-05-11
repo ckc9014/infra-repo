@@ -38,9 +38,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
-          path: ${{ inputs.working_directory }}
+          path: ${{ inputs.working-directory }}
 
       - name: Terraform Apply
-        working-directory: ${{ inputs.working_directory }}
+        working-directory: ${{ inputs.working-directory }}
         run: terraform apply tfplan
         
