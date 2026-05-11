@@ -5,16 +5,13 @@ module "eks" {
   cluster_name    = local.cluster_name
   cluster_version = "1.30"
 
-  
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  cluster_endpoint_public_access  = true  
-  
+  cluster_endpoint_public_access = true
 
   # Enable IAM Roles for Service Accounts (IRSA)
   enable_irsa = true
-
 
   authentication_mode = "API_AND_CONFIG_MAP"
 
@@ -27,5 +24,25 @@ module "eks" {
     Project     = var.project_name
     Environment = var.environment
     ManagedBy   = "Terraform"
+  }
+
+  # -------------------------------------------------------------
+  # Managed node group for system workloads (ArgoCD, Karpenter, etc.)
+  # -------------------------------------------------------------
+  eks_managed_node_groups = {
+    system = {
+      name = "system-node-group"
+      instance_types = ["t3.medium"]
+      min_size     = 1
+      max_size     = 3
+      desired_size = 1
+
+      subnet_ids = module.vpc.private_subnets
+
+      tags = {
+        Environment = var.environment
+        Role        = "system"
+      }
+    }
   }
 }
