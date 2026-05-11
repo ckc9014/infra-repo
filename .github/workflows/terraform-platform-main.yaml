@@ -26,7 +26,7 @@ jobs:
   env:
     uses: ./.github/workflows/determine-environment.yaml
 
-  plan:
+  plan-crds:
     needs: env
     uses: ./.github/workflows/terraform-plan.yaml
     with:
@@ -38,22 +38,46 @@ jobs:
       environment: ${{ needs.env.outputs.environment }}
 
 
-  apply:
-    needs: [env, plan]
+  apply-crds:
+    needs: [env, plan-crds]
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch')
     uses: ./.github/workflows/terraform-apply.yaml
     with:
-      working-directory: ./terraform/platform
+      working-directory: ./terraform/platform/crds
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: platform/${{ needs.env.outputs.environment }}/terraform.tfstate
+      tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
+
+  plan-manifests:
+    needs: apply-crds   
+    uses: ./.github/workflows/terraform-plan.yaml
+    with:
+      working-directory: ./terraform/platform/manifests
+      aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+      aws-region: ${{ vars.AWS_REGION }}
+      tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+      tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
+      environment: ${{ needs.env.outputs.environment }}
+
+  apply-manifests:
+    needs: [env, plan-manifests]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch')
+    uses: ./.github/workflows/terraform-apply.yaml
+    with:
+      working-directory: ./terraform/platform/manifests
+      aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+      aws-region: ${{ vars.AWS_REGION }}
+      tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+      tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
 
   create-and-verify:
     runs-on: ubuntu-latest
-    needs: [apply, env]
+    needs: [apply-manifests, env]
     permissions:
      id-token: write
      contents: read
