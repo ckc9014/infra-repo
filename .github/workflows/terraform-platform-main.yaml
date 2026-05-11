@@ -36,6 +36,7 @@ jobs:
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: platform/${{ needs.env.outputs.environment }}/terraform.tfstate
       environment: ${{ needs.env.outputs.environment }}
+      artifact-name: tfplan-crds
 
 
   apply-crds:
@@ -61,6 +62,7 @@ jobs:
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
       environment: ${{ needs.env.outputs.environment }}
+      artifact-name: tfplan-manifests
 
   apply-manifests:
     needs: [env, plan-manifests]
