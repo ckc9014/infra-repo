@@ -30,7 +30,7 @@ jobs:
     needs: env
     uses: ./.github/workflows/terraform-plan.yaml
     with:
-      working-directory: ./terraform/platform
+      working-directory: ./terraform/platform/crds
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
