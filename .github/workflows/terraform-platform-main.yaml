@@ -52,7 +52,7 @@ jobs:
       tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
 
   plan-manifests:
-    needs: apply-crds   
+    needs: [env, apply-crds]  
     uses: ./.github/workflows/terraform-plan.yaml
     with:
       working-directory: ./terraform/platform/manifests
