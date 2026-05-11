@@ -26,3 +26,7 @@ output "karpenter_node_instance_profile" {
 output "cluster_certificate_authority_data" {
   value = module.eks.cluster_certificate_authority_data
 }
+
+output "karpenter_node_role_name" {
+  value = aws_iam_role.karpenter_node.name
+}
