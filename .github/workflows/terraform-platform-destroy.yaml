@@ -36,7 +36,8 @@ jobs:
       - name: Terraform Destroy
         working-directory: ./terraform/platform
         run: |
-         terraform destroy -auto-approve \
-          -var="environment=${{ needs.env.outputs.environment }}" \
-          -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
-          -var="aws_region=${{ vars.AWS_REGION }}"
+          terraform destroy -auto-approve \
+          -var-file="envs/${{ inputs.environment }}.tfvars" \
+          -var="environment=${{ inputs.environment }}" \
+          -var="tf_state_bucket=${{ inputs.tf_state_bucket_var }}" \
+          -var="aws_region=${{ inputs.aws_region_var }}"

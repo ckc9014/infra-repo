@@ -25,7 +25,7 @@ on:
       tf_state_bucket_var:   
         required: true
         type: string
-      aws_region_var:       
+      aws_region_var:        
         required: true
         type: string
 
