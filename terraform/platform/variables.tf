@@ -1,6 +1,7 @@
 variable "aws_region" {
   description = "AWS region where resources are deployed"
   type        = string
+  default     = "eu-west-1" 
 }
 
 variable "tf_state_bucket" {
