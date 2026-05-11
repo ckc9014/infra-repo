@@ -6,7 +6,8 @@ spec:
   amiFamily: AL2023
   amiSelectorTerms:                   
     - alias: al2023@latest
-  role: ${karpenter_node_role}          
+  role: ${karpenter_node_role}
+  subnetSelectorTerms:   
     - tags:
         karpenter.sh/discovery: ${cluster_name}
   securityGroupSelectorTerms:
