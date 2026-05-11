@@ -40,7 +40,7 @@ jobs:
           -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
           -var="environment=${{ needs.env.outputs.environment }}" \
           -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
-          -var="aws_region=${{ vars.AWS_REGION }}"
+          -var="aws_region=${{ vars.AWS_REGION }}" \
           -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
 
 
@@ -66,5 +66,5 @@ jobs:
           -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
           -var="environment=${{ needs.env.outputs.environment }}" \
           -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
-          -var="aws_region=${{ vars.AWS_REGION }}"
+          -var="aws_region=${{ vars.AWS_REGION }}" \
           -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
