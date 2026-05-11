@@ -39,5 +39,3 @@ jobs:
           terraform destroy -auto-approve \
           -var-file="envs/${{ inputs.environment }}.tfvars" \
           -var="environment=${{ inputs.environment }}" \
-          -var="tf_state_bucket=${{ inputs.tf_state_bucket_var }}" \
-          -var="aws_region=${{ inputs.aws_region_var }}"

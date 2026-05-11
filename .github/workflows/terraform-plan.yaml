@@ -22,12 +22,7 @@ on:
       environment:
         required: true
         type: string
-      tf_state_bucket_var:   
-        required: true
-        type: string
-      aws_region_var:        
-        required: true
-        type: string
+
 
 jobs:
   plan:
@@ -49,8 +44,9 @@ jobs:
           terraform plan -out=tfplan \
           -var-file="envs/${{ inputs.environment }}.tfvars" \
           -var="environment=${{ inputs.environment }}" \
-          -var="tf_state_bucket=${{ inputs.tf_state_bucket_var }}" \
-          -var="aws_region=${{ inputs.aws_region_var }}"
+          -var="tf_state_bucket=${{ inputs.tf_state_bucket }}" \
+          -var="aws_region=${{ inputs.aws_region }}"
+          
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:

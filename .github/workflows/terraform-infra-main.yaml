@@ -1,56 +1,55 @@
-name: Apply Infrastructure (VPC + EKS)
+  name: Apply Infrastructure (VPC + EKS)
 
-on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment (dev/prod)'
-        required: true
-        default: 'dev'
-        type: choice
-        options: ['dev', 'prod']
-  push:
-    branches: [ main ]
-    paths:
-      - 'terraform/infrastructure/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'terraform/infrastructure/**'
+  on:
+    workflow_dispatch:
+      inputs:
+        environment:
+          description: 'Environment (dev/prod)'
+          required: true
+          default: 'dev'
+          type: choice
+          options: ['dev', 'prod']
+    push:
+      branches: [ main ]
+      paths:
+        - 'terraform/infrastructure/**'
+    pull_request:
+      branches: [ main ]
+      paths:
+        - 'terraform/infrastructure/**'
 
-permissions:
-  id-token: write
-  contents: read
+  permissions:
+    id-token: write
+    contents: read
 
-jobs:
-  env:
-    uses: ./.github/workflows/determine-environment.yaml
+  jobs:
+    env:
+      uses: ./.github/workflows/determine-environment.yaml
 
-  plan:
-    needs: env
-    uses: ./.github/workflows/terraform-plan.yaml
-    with:
-      working-directory: ./terraform/infrastructure
-      aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-      aws-region: ${{ vars.AWS_REGION }}
-      tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
-      environment: ${{ needs.env.outputs.environment }}
-      tf_state_bucket_var: ${{ vars.TF_STATE_BUCKET }}
-      aws_region_var: ${{ vars.AWS_REGION }}
+    plan:
+      needs: env
+      uses: ./.github/workflows/terraform-plan.yaml
+      with:
+        working-directory: ./terraform/infrastructure
+        aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+        aws-region: ${{ vars.AWS_REGION }}
+        tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+        tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+        environment: ${{ needs.env.outputs.environment }}
 
-  apply:
-    needs: [env, plan]
-    if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch')
-    uses: ./.github/workflows/terraform-apply.yaml
-    with:
-      working-directory: ./terraform/infrastructure
-      aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-      aws-region: ${{ vars.AWS_REGION }}
-      tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+
+    apply:
+      needs: [env, plan]
+      if: |
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_dispatch')
+      uses: ./.github/workflows/terraform-apply.yaml
+      with:
+        working-directory: ./terraform/infrastructure
+        aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+        aws-region: ${{ vars.AWS_REGION }}
+        tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+        tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
       
   # create_arc_secret:
   #   runs-on: ubuntu-latest
