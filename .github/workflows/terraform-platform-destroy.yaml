@@ -18,7 +18,7 @@ jobs:
   env:
     uses: ./.github/workflows/determine-environment.yaml
 
-  destroy:
+  destroy-manifests:
     runs-on: ubuntu-latest
     needs: env
     steps:
@@ -29,12 +29,12 @@ jobs:
         with:
           aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-          working-directory: ./terraform/platform
+          working-directory: ./terraform/platform/manifests
           tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-          tf-state-key: platform/${{ needs.env.outputs.environment }}/terraform.tfstate
+          tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
 
-      - name: Terraform Destroy
-        working-directory: ./terraform/platform
+      - name: Terraform Destroy (manifests)
+        working-directory: ./terraform/platform/manifests
         run: |
           terraform destroy -auto-approve \
           -var-file="envs/${{ inputs.environment }}.tfvars" \
@@ -43,3 +43,28 @@ jobs:
           -var="aws_region=${{ inputs.aws_region }}"
           -var="github_actions_role_arn=${{ inputs.aws-role-arn }}"
 
+
+  destroy-crds:
+    runs-on: ubuntu-latest
+    needs: [env, destroy-manifests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform and AWS
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          working-directory: ./terraform/platform/crds
+          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+          tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
+
+      - name: Terraform Destroy (crds)
+        working-directory: ./terraform/platform/crds
+        run: |
+          terraform destroy -auto-approve \
+          -var-file="envs/${{ inputs.environment }}.tfvars" \
+          -var="environment=${{ inputs.environment }}" \
+          -var="tf_state_bucket=${{ inputs.tf_state_bucket }}" \
+          -var="aws_region=${{ inputs.aws_region }}"
+          -var="github_actions_role_arn=${{ inputs.aws-role-arn }}"
