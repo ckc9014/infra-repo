@@ -34,7 +34,7 @@ jobs:
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: platform/${{ needs.env.outputs.environment }}/terraform.tfstate
+      tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
       environment: ${{ needs.env.outputs.environment }}
       artifact-name: tfplan-crds
 
