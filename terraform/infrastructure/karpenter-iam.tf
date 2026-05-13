@@ -53,6 +53,7 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:DeleteLaunchTemplate",
           "iam:PassRole",
           "iam:GetInstanceProfile",
+          "iam:ListInstanceProfiles",
           "eks:DescribeCluster",
           "ssm:GetParameter"    
         ]
