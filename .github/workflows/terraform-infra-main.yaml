@@ -1,11 +1,73 @@
-name: Terraform CI/CD
 
-on:
-  workflow_dispatch:
- 
+  name: Apply Infrastructure (VPC + EKS)
 
-jobs:
-  dummy:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "I'm just a placeholder"
+  on:
+    workflow_dispatch:
+      inputs:
+        environment:
+          description: 'Environment (dev/prod)'
+          required: true
+          default: 'dev'
+          type: choice
+          options: ['dev', 'prod']
+    push:
+      branches: [ main ]
+      paths:
+        - 'terraform/infrastructure/**'
+    pull_request:
+      branches: [ main ]
+      paths:
+        - 'terraform/infrastructure/**'
+
+  permissions:
+    id-token: write
+    contents: read
+
+  jobs:
+    env:
+      uses: ./.github/workflows/determine-environment.yaml
+
+    plan:
+      needs: env
+      uses: ./.github/workflows/terraform-plan.yaml
+      with:
+        working-directory: ./terraform/infrastructure
+        aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+        aws-region: ${{ vars.AWS_REGION }}
+        tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+        tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+        environment: ${{ needs.env.outputs.environment }}
+   
+    apply:
+      needs: [env, plan]
+      if: |
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_dispatch')
+      uses: ./.github/workflows/terraform-apply.yaml
+      with:
+        working-directory: ./terraform/infrastructure
+        aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+        aws-region: ${{ vars.AWS_REGION }}
+        tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+        tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+      
+  # create_arc_secret:
+  #   runs-on: ubuntu-latest
+  #   needs: apply
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Configure kubectl
+  #       run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ needs.apply.outputs.cluster_name }}
+
+      # - name: Create ARC GitHub App secret in cluster
+      #   run: |
+      #     kubectl create namespace arc-systems --dry-run=client -o yaml | kubectl apply -f -
+      #     kubectl create secret generic github-app-auth \
+      #       -n arc-systems \
+      #       --dry-run=client \
+      #       --from-literal=cluster_name=${{ needs.apply.outputs.cluster_name }} \
+      #       --from-literal=cluster_endpoint=${{ needs.apply.outputs.cluster_endpoint }} \
+      #       --from-literal=github_app_id=${{ secrets.ARC_APP_ID }} \
+      #       --from-literal=github_app_installation_id=${{ secrets.ARC_APP_INSTALLATION_ID }} \
+      #       --from-literal=github_app_private_key="${{ secrets.ARC_APP_PRIVATE_KEY }}" \
+      #       -o yaml | kubectl apply -f -

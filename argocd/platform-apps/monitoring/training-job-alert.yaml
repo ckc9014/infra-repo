@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gpu-training-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    role: alert-rules
+spec:
+  groups:
+  - name: gpu-training.rules
+    interval: 30s
+    rules:
+    - alert: GPUMissing
+      expr: gpu_active == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "No GPU available for training job"
+        description: |
+          The training pod in namespace {{ $labels.namespace }} has `gpu_active = 0`.
+          This means it cannot access a GPU. Check node selectors, tolerations, and GPU driver.
+
+    - alert: TrainingJobFailed
+      expr: kube_job_status_failed{namespace="training", job="training-job"} > 0
+      for: 0s
+      labels:
+        severity: warning
+      annotations:
+        summary: "Training job failed"
+        description: "The Kubernetes Job '{{ $labels.job }}' in namespace '{{ $labels.namespace }}' has failed. Inspect logs for details."
+
+    - alert: GPUNodeNotReady
+      expr: kube_node_status_condition{condition="Ready", status="true"} and on(node) (count(kube_pod_resource_request{resource="nvidia_com_gpu"}) by (node)) == 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "GPU node is not ready"
+        description: "A node that previously had GPU requests is not reporting Ready."

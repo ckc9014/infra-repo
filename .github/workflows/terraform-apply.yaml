@@ -1,0 +1,50 @@
+name: Terraform Apply (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+      aws-role-arn:
+        required: true
+        type: string
+      aws-region:
+        required: false
+        type: string
+        default: 'eu-west-1'
+      tf-state-bucket:
+        type: string
+        required: true
+      tf-state-key:
+        type: string
+        required: true
+      artifact-name:
+        required: false
+        type: string
+        default: 'tfplan'
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform and AWS
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ inputs.aws-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+          working-directory: ${{ inputs.working-directory }}
+          tf-state-bucket: ${{ inputs.tf-state-bucket }}
+          tf-state-key: ${{ inputs.tf-state-key }}
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.working-directory }}
+
+      - name: Terraform Apply
+        working-directory: ${{ inputs.working-directory }}
+        run: terraform apply tfplan
+        

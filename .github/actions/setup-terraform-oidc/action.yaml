@@ -1,0 +1,43 @@
+name: 'Setup Terraform and AWS'
+description: 'Checks out code, configures AWS OIDC, and sets up Terraform'
+
+inputs:
+  aws-role-arn:
+    required: true
+    description: 'ARN of the IAM role to assume via OIDC for GitHub Actions'
+  aws-region:
+    required: false
+    default: 'eu-west-1'
+    description: 'AWS region where resources will be deployed (default: eu-west-1)'
+  working-directory:
+    required: false
+    default: '.'
+    description: 'Directory containing Terraform configuration (default: repository root)'
+  tf-state-bucket:
+    description:  'Name of the S3 bucket used for Terraform remote state'
+    required: true
+  tf-state-key:
+    description: 'Key (path) inside the S3 bucket for the Terraform state file'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: ${{ inputs.aws-region }}
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.11.0'     
+    - name: Terraform Init
+      working-directory: ${{ inputs.working-directory }}
+      run:  |
+        terraform init \
+        -backend-config="bucket=${{ inputs.tf-state-bucket }}" \
+        -backend-config="key=${{ inputs.tf-state-key}}" \
+        -backend-config="region=${{ inputs.aws-region }}" \
+        -backend-config="encrypt=true" \
+        -backend-config="use_lockfile=true"
+      shell: bash

@@ -1,0 +1,34 @@
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Schedule controller on system nodes (t3.small) if needed
+nodeSelector:
+  node.kubernetes.io/instance-type: t3.small
+
+# Tolerate CriticalAddonsOnly taint on system nodes (optional, only if system nodes have that taint)
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+
+# Metrics and logging
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false   # set true if you have Prometheus and want to scrape controller metrics
+
+logLevel: info
+
+# Controller watches all namespaces by default (empty string)
+watchNamespace: ""
+
+# GitHub API URL (default)
+githubAPIURL: https://api.github.com

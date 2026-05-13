@@ -2,10 +2,44 @@ name: Destroy Infrastructure
 
 on:
   workflow_dispatch:
- 
+    inputs:
+      environment:
+        description: 'Environment (dev/prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options: ['dev', 'prod']
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  dummy:
+  env:
+    uses: ./.github/workflows/determine-environment.yaml
+
+  destroy:
     runs-on: ubuntu-latest
+    needs: env
     steps:
-      - run: echo "I'm just a placeholder"
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform and AWS
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          working-directory: ./terraform/infrastructure
+          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+          tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+
+      - name: Terraform Destroy
+        working-directory: ./terraform/infrastructure
+        run: |
+          terraform destroy -auto-approve \
+          -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
+          -var="environment=${{ needs.env.outputs.environment }}" \
+          -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
+          -var="aws_region=${{ vars.AWS_REGION }}" \
+          -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
+

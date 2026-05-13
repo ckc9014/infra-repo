@@ -1,0 +1,19 @@
+serviceAccount:
+  create: true
+  name: karpenter
+
+settings:
+  clusterName: ${cluster_name}
+  clusterEndpoint: ${cluster_endpoint}
+
+webhook:
+  enabled: true
+
+nodeSelector:
+  node.kubernetes.io/instance-type: t3.small
+
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
