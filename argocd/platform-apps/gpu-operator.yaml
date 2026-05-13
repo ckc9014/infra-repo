@@ -14,7 +14,7 @@ spec:
     targetRevision: v26.3.1
     helm:
       valueFiles:
-      - $values/values/gpu-operator/values.yaml
+      - $values/platform-apps/values/gpu-operator/values.yaml
 
   # Source 2: Path containing the values file
   - repoURL: https://github.com/ckc9014/infra-repo.git

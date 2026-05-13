@@ -1,6 +1,12 @@
 prometheus:
  
   prometheusSpec:
+    tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
     retention: 1d
     retentionSize: 5GB
 
@@ -28,6 +34,11 @@ prometheus:
 
 
 grafana:
+  tolerations:
+  - key: "CriticalAddonsOnly"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
   enabled: true
   adminPassword: admin  
   persistence:
@@ -52,8 +63,14 @@ grafana:
 
 
 alertmanager:
-  enabled: true
+
   alertmanagerSpec:
+    tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+    enabled: true
     resources:
       requests:
         cpu: 50m
