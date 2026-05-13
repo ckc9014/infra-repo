@@ -1,7 +1,7 @@
 resource "helm_release" "karpenter" {
   name             = "karpenter"
   namespace        = "kube-system"
-  create_namespace = false 
+  create_namespace = false
 
   repository = "oci://public.ecr.aws/karpenter"
   chart      = "karpenter"
