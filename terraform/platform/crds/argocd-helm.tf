@@ -7,22 +7,5 @@ resource "helm_release" "argocd" {
   chart      = "argo-cd"
   version    = "7.7.18"
 
-  set = [
-    {
-      name  = "server.insecure"
-      value = "true"
-    },
-    {
-      name  = "server.resources.requests.cpu"
-      value = "500m"
-    },
-    {
-      name  = "server.resources.requests.memory"
-      value = "512Mi"
-    },
-    {
-      name  = "server.config.accounts.kubectl.enable"
-      value = "true"
-    }
-  ]
+  values = [local.argocd_values_file]
 }
