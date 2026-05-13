@@ -16,7 +16,7 @@ spec:
       valueFiles:
       - $values/values/arc/values.yaml
 
-  - repoURL: https://github.com/your-org/infra-repo.git
+  - repoURL: https://github.com/ckc9014/infra-repo.git
     targetRevision: main
     ref: values
   destination:
