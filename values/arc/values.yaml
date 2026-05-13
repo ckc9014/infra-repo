@@ -1,4 +1,4 @@
-githubConfigUrl: "https://github.com/ckc9014/training-repo"
+githubConfigUrl: "https://github.com/ckc9014/training-job"
 
 # Secret containing GitHub App credentials 
 githubConfigSecret: "github-app-auth"
