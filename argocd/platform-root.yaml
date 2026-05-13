@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/ckc9014/infra-repo.git
-    targetRevision: dev
+    targetRevision: main
     path: argocd/platform-apps
     directory:
       recurse: true
