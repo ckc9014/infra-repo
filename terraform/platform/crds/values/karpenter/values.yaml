@@ -1,0 +1,15 @@
+serviceAccount:
+  create: true
+  name: karpenter
+
+webhook:
+  enabled: true
+
+nodeSelector:
+  node.kubernetes.io/instance-type: t3.small
+
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Equal
+    value: "true"
+    effect: NoSchedule

@@ -7,15 +7,9 @@ resource "helm_release" "karpenter" {
   chart      = "karpenter"
   version    = "1.10.0"
 
+  values = [local.karpenter_static_values]
+
   set = [
-    {
-      name  = "serviceAccount.create"
-      value = "true"
-    },
-    {
-      name  = "serviceAccount.name"
-      value = "karpenter"
-    },
     {
       name  = "settings.clusterName"
       value = data.terraform_remote_state.infra.outputs.cluster_name
@@ -24,9 +18,6 @@ resource "helm_release" "karpenter" {
       name  = "settings.clusterEndpoint"
       value = data.terraform_remote_state.infra.outputs.cluster_endpoint
     },
-    {
-      name  = "webhook.enabled"
-      value = "true"
-    }
+
   ]
 }
