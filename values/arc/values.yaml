@@ -1,16 +1,54 @@
+githubConfigUrl: "https://github.com/ckc9014/training-repo"
 
-githubConfigUrl: https://github.com/your-org   
-configSecret:
-  name: github-app-auth                 
+# Secret containing GitHub App credentials 
+githubConfigSecret: "github-app-auth"
 
-
-runnerScaleSetName: gpu-runner-set
-
+runnerScaleSetName: "gpu-runner-set"
 
 serviceAccount:
-  name: arc-controller-sa
+  name: "arc-controller-sa"
+
+# Labels that workflows can target with "runs-on:"
+labels:
+  - "gpu-runner"
 
 
+minRunners: 0
+maxRunners: 5
+
+
+template:
+  spec:
+    # Tolerations – allow runner to run on GPU nodes (which have a taint)
+    tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+    # Node selector – optionally force spot instances
+    nodeSelector:
+      karpenter.sh/capacity-type: "spot"
+    containers:
+      - name: runner
+        # Runner image (supports GPU)
+        image: "ghcr.io/actions/actions-runner:latest"
+        resources:
+          limits:
+            cpu: "4"
+            memory: "16Gi"
+            nvidia.com/gpu: "1"
+          requests:
+            cpu: "2"
+            memory: "8Gi"
+            nvidia.com/gpu: "1"
+        env:
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: "all"
+
+containerMode:
+  type: "kubernetes"
+
+# Flags to prevent ArgoCD label conflicts
 flags:
   excludeLabelPropagationPrefixes:
     - "argocd.argoproj.io/instance"
@@ -20,3 +58,10 @@ flags:
     - "app.kubernetes.io/name"
     - "app.kubernetes.io/part-of"
     - "app.kubernetes.io/version"
+
+
+admissionWebhooks:
+  enabled: false   
+
+metrics:
+  enabled: false
