@@ -124,8 +124,35 @@ jobs:
     - name: Quick component check
       run: |
         echo "=== Verifying platform components ==="
-        kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server && echo "✅ ArgoCD OK" || echo "❌ ArgoCD not ready"
-        kubectl get pods -n kube-system -l app.kubernetes.io/name=karpenter && echo "✅ Karpenter OK" || echo "❌ Karpenter not found"
-        kubectl get pods -n gpu-operator 2>/dev/null && echo "✅ GPU Operator OK" || echo "❌ GPU Operator not found"
-        kubectl get pods -n monitoring 2>/dev/null && echo "✅ Prometheus stack OK" || echo "❌ Prometheus stack not found"
-        kubectl get pods -n arc-systems 2>/dev/null && echo "✅ ARC controller OK" || echo "❌ ARC controller not found"
+    
+    
+        if kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ ArgoCD OK"
+        else
+          echo "❌ ArgoCD not ready"
+        fi
+    
+         if kubectl get pods -n kube-system -l app.kubernetes.io/name=karpenter --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ Karpenter OK"
+        else
+          echo "❌ Karpenter not found"
+        fi
+        
+        
+        if kubectl get pods -n gpu-operator --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ GPU Operator OK"
+        else
+          echo "❌ GPU Operator not found"
+        fi
+        
+        if kubectl get pods -n monitoring --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ Prometheus stack OK"
+        else
+          echo "❌ Prometheus stack not found"
+        fi
+        
+        if kubectl get pods -n arc-systems --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ ARC controller OK"
+        else
+          echo "❌ ARC controller not found"
+        fi
