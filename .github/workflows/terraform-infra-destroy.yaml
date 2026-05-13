@@ -42,3 +42,4 @@ jobs:
           -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
           -var="aws_region=${{ vars.AWS_REGION }}" \
           -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
+

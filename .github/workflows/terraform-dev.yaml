@@ -114,5 +114,4 @@ jobs:
       #     echo "=== ARC controller ==="
       #     kubectl get pods -n arc-systems 2>/dev/null || echo "installation failed"
       #     echo "=== Argo Rollouts ==="
-      #     kubectl get pods -n argo-rollouts 2>/dev/null || echo "installation failed"
-      
+      #     kubectl get pods -n argo-rollouts 2>/dev/null || echo "installation failed"   
