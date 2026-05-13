@@ -2,6 +2,10 @@ serviceAccount:
   create: true
   name: karpenter
 
+settings:
+  clusterName: ${cluster_name}
+  clusterEndpoint: ${cluster_endpoint}
+
 webhook:
   enabled: true
 
