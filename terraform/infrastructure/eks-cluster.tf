@@ -56,6 +56,14 @@ module "eks" {
       
       subnet_ids = module.vpc.private_subnets
 
+      taints = [
+        {
+         key    = "CriticalAddonsOnly"
+         value  = "true"
+         effect = "NO_SCHEDULE"   # or "NO_EXECUTE"
+        }
+      ]
+
       tags = {
         Environment = var.environment
         Role        = "system"
