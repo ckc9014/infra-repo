@@ -1,15 +1,13 @@
 prometheus:
- 
+  enabled: true                    
   prometheusSpec:
     tolerations:
       - key: "CriticalAddonsOnly"
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-
     retention: 1d
     retentionSize: 5GB
-
     resources:
       requests:
         cpu: 500m
@@ -17,7 +15,6 @@ prometheus:
       limits:
         cpu: 1000m
         memory: 1200Mi
-
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -26,21 +23,18 @@ prometheus:
           resources:
             requests:
               storage: 10Gi
-
-  
   serviceMonitorSelectorNilUsesHelmValues: false
   podMonitorSelectorNilUsesHelmValues: false
   ruleSelectorNilUsesHelmValues: false
 
-
 grafana:
   tolerations:
-  - key: "CriticalAddonsOnly"
-    operator: "Equal"
-    value: "true"
-    effect: "NoSchedule"
+    - key: "CriticalAddonsOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
   enabled: true
-  adminPassword: admin  
+  adminPassword: admin
   persistence:
     enabled: true
     size: 5Gi
@@ -61,16 +55,14 @@ grafana:
       enabled: true
       searchNamespace: ALL
 
-
 alertmanager:
-
+  enabled: true                    
   alertmanagerSpec:
     tolerations:
       - key: "CriticalAddonsOnly"
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-    enabled: true
     resources:
       requests:
         cpu: 50m
@@ -87,9 +79,13 @@ alertmanager:
             requests:
               storage: 2Gi
 
-
 nodeExporter:
   enabled: true
+  tolerations:
+    - key: "CriticalAddonsOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
   resources:
     requests:
       cpu: 50m
@@ -100,6 +96,11 @@ nodeExporter:
 
 kube-state-metrics:
   enabled: true
+  tolerations:
+    - key: "CriticalAddonsOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
   resources:
     requests:
       cpu: 50m

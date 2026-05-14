@@ -1,9 +1,14 @@
 operator:
-  defaultRuntime: containerd   #recommended runtime for eks
+  defaultRuntime: containerd
+  tolerations:
+    - key: "CriticalAddonsOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
 
 driver:
   enabled: true
-  version: "550.144.03"        
+  # version: "550.144.03" # Optional: this is the default version for chart v26.3.1
 
 toolkit:
   enabled: true
@@ -11,14 +16,20 @@ toolkit:
 devicePlugin:
   enabled: true
 
-dcgmExporter:                   # collects detailed GPU telemetry
+dcgmExporter:
   enabled: true
 
 serviceMonitor:
-  enabled: true                 # Exposes GPU metrics to Prometheus
+  enabled: true
 
 migManager:
-  enabled: false                # not support for g4dn.xlarge
+  enabled: false
 
 nodeStatusExporter:
   enabled: true
+
+tolerations:
+  - key: "nvidia.com/gpu"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
