@@ -1,36 +1,30 @@
 githubConfigUrl: "https://github.com/ckc9014/training-job"
-
-# Secret containing GitHub App credentials 
 githubConfigSecret: "github-app-auth"
+
+replicaCount: "1"
 
 runnerScaleSetName: "gpu-runner-set"
 
 serviceAccount:
   name: "arc-controller-sa"
 
-# Labels that workflows can target with "runs-on:"
 labels:
   - "gpu-runner"
-
 
 minRunners: "0"
 maxRunners: "5"
 
-
 template:
   spec:
-    # Tolerations – allow runner to run on GPU nodes (which have a taint)
     tolerations:
       - key: "nvidia.com/gpu"
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-    # Node selector – optionally force spot instances
     nodeSelector:
       karpenter.sh/capacity-type: "spot"
     containers:
       - name: runner
-        # Runner image (supports GPU)
         image: "ghcr.io/actions/actions-runner:latest"
         resources:
           limits:
@@ -48,7 +42,6 @@ template:
 containerMode:
   type: "kubernetes"
 
-# Flags to prevent ArgoCD label conflicts
 flags:
   excludeLabelPropagationPrefixes:
     - "argocd.argoproj.io/instance"
@@ -59,9 +52,14 @@ flags:
     - "app.kubernetes.io/part-of"
     - "app.kubernetes.io/version"
 
-
 admissionWebhooks:
-  enabled: false   
+  enabled: false
 
 metrics:
-  enabled: false
+  enabled: true
+  listenerAddr: ":8080"
+  listenerEndpoint: "/metrics"
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: kube-prometheus-stack

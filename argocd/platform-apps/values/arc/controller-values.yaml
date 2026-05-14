@@ -1,6 +1,6 @@
-replicaCount: "1"                # ✅ quoted string
+replicaCount: "1"
 
-controllerManagerAddr: ":8080"    # ✅ added (string; adjust port as needed)
+controllerManagerAddr: ":8080"        
 
 resources:
   requests:
@@ -10,27 +10,23 @@ resources:
     cpu: 200m
     memory: 256Mi
 
-# Schedule controller on system nodes (t3.small) if needed
 nodeSelector:
   node.kubernetes.io/instance-type: t3.small
 
-# Tolerate CriticalAddonsOnly taint on system nodes (optional, only if system nodes have that taint)
 tolerations:
   - key: CriticalAddonsOnly
     operator: Equal
     value: "true"
     effect: NoSchedule
 
-# Metrics and logging
 metrics:
   enabled: true
   serviceMonitor:
-    enabled: false   # set true if you have Prometheus and want to scrape controller metrics
+    enabled: true
+    additionalLabels:
+      release: kube-prometheus-stack
 
 logLevel: info
-
-# Controller watches all namespaces by default (empty string)
 watchNamespace: ""
-
-# GitHub API URL (default)
 githubAPIURL: https://api.github.com
+
