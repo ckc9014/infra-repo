@@ -8,7 +8,7 @@ operator:
 
 driver:
   enabled: true
-  # version: "550.144.03" # Optional: this is the default version for chart v26.3.1
+  # version: "550.144.03" # default for chart v26.3.1
 
 toolkit:
   enabled: true
@@ -28,8 +28,29 @@ migManager:
 nodeStatusExporter:
   enabled: true
 
+# Global toleration for all GPU‑operator DaemonSets (driver, device plugin, etc.)
 tolerations:
   - key: "nvidia.com/gpu"
     operator: "Equal"
     value: "true"
     effect: "NoSchedule"
+
+# NFD (Node Feature Discovery) sub‑chart configuration
+nfd:
+  enabled: true
+  worker:
+    tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      - key: "nvidia.com/gpu"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+  master:
+    tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
