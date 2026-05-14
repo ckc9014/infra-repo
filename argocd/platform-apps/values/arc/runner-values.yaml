@@ -1,9 +1,10 @@
 githubConfigUrl: "https://github.com/ckc9014/training-job"
 githubConfigSecret: "github-app-auth"
 runnerScaleSetName: "gpu-runner-set"
-labels: {} 
+labels: {}
 minRunners: 0
 maxRunners: 5
+
 template:
   spec:
     tolerations:
@@ -11,7 +12,7 @@ template:
         operator: Equal
         value: "true"
         effect: NoSchedule
-  containers:
+    containers:
       - name: runner
         image: "ghcr.io/actions/actions-runner:latest"
         resources:
@@ -21,11 +22,19 @@ template:
           requests:
             cpu: "200m"
             memory: "8Gi"
+
 containerMode:
-  type: "kubernetes"
+  type: kubernetes
   kubernetes:
     workVolume:
-      emptyDir: {} 
+      ephemeral:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+
 controllerServiceAccount:
-  namespace: "arc-systems"  
+  namespace: "arc-systems"
   name: "arc-gha-rs-controller"
