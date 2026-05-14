@@ -11,6 +11,11 @@ spec:
     spec:
       serviceAccountName: hook-sa
       restartPolicy: Never
+      tolerations:                             
+        - key: CriticalAddonsOnly
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
       containers:
       - name: kubectl
         image: bitnami/kubectl:latest
