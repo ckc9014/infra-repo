@@ -24,16 +24,7 @@ template:
             memory: "8Gi"
 
 containerMode:
-  type: kubernetes
-  kubernetes:
-    workVolume:
-      ephemeral:
-        volumeClaimTemplate:
-          spec:
-            accessModes: ["ReadWriteOnce"]
-            resources:
-              requests:
-                storage: 10Gi
+ type: kubernetes-novolume
 
 controllerServiceAccount:
   namespace: "arc-systems"
