@@ -1,4 +1,6 @@
-replicaCount: 1
+replicaCount: "1"                # ✅ quoted string
+
+controllerManagerAddr: "8080"    # ✅ added (string; adjust port as needed)
 
 resources:
   requests:
