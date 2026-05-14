@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: patch-prometheus-operator
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      serviceAccountName: hook-sa
+      restartPolicy: Never
+      containers:
+      - name: kubectl
+        image: bitnami/kubectl:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Wait for the deployment to exist
+          until kubectl get deployment monitoring-stack-kube-prom-operator -n monitoring; do sleep 2; done
+          
+          # Patch the deployment to add toleration (if not already present)
+          kubectl patch deployment monitoring-stack-kube-prom-operator -n monitoring --type json -p='[{"op": "add", "path": "/spec/template/spec/tolerations", "value": [{"key":"CriticalAddonsOnly","operator":"Equal","value":"true","effect":"NoSchedule"}]}]' || true
+          
+          # Delete pending pods to force recreation with new toleration
+          kubectl delete pod -n monitoring -l app=monitoring-stack-kube-prom-operator --ignore-not-found
