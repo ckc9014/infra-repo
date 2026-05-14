@@ -3,6 +3,6 @@ githubConfigSecret: "github-app-auth"
 runnerScaleSetName: "gpu-runner-set"
 labels:
   - "gpu-runner"
-minRunners: 0
-maxRunners: 5
+minRunners: "0"
+maxRunners: "5"
 
