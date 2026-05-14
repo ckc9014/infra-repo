@@ -1,8 +1,7 @@
 githubConfigUrl: "https://github.com/ckc9014/training-job"
 githubConfigSecret: "github-app-auth"
 runnerScaleSetName: "gpu-runner-set"
-labels:
-  - "gpu-runner"
+labels: "gpu-runner"
 minRunners: 0
 maxRunners: 5
 template:
