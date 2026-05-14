@@ -12,8 +12,14 @@ template:
         value: "true"
         effect: NoSchedule
     volumes:
-      - name: ephemeral-storage
-        emptyDir: {}
+    - name: ephemeral-storage
+      ephemeral:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
     containers:
       - name: runner
         image: "ghcr.io/actions/actions-runner:latest"
