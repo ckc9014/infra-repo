@@ -35,9 +35,8 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
-      environment: ${{ needs.env.outputs.environment }}
       artifact-name: tfplan-crds
-
+      environment: ${{ needs.env.outputs.environment }}
 
   apply-crds:
     needs: [env, plan-crds]
@@ -62,8 +61,8 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
-      environment: ${{ needs.env.outputs.environment }}
       artifact-name: tfplan-manifests
+      environment: ${{ needs.env.outputs.environment }}
 
   apply-manifests:
     needs: [env, plan-manifests]
@@ -96,7 +95,7 @@ jobs:
         working-directory: ./terraform/infrastructure
         tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
         tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
-        environment: ${{ needs.env.outputs.environment }}
+        
 
     - name: Get cluster name and endpoint
       id: get_cluster
