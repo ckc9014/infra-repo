@@ -54,3 +54,13 @@ nfd:
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
+  gc:
+    tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      - key: "nvidia.com/gpu"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule" 
