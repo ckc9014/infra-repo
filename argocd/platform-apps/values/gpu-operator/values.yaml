@@ -40,7 +40,7 @@ tolerations:
     effect: "NoSchedule"
 
 # NFD (Node Feature Discovery) sub‑chart configuration
-nfd:
+node-feature-discovery:
   enabled: true
   worker:
     tolerations:
