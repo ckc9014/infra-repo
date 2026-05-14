@@ -1,6 +1,5 @@
 replicaCount: "1"
-
-controllerManagerAddr: ":8080"        
+controllerManagerAddr: ":8080"
 
 resources:
   requests:
@@ -9,24 +8,4 @@ resources:
   limits:
     cpu: "200m"
     memory: "256Mi"
-
-nodeSelector:
-  node.kubernetes.io/instance-type: t3.small
-
-tolerations:
-  - key: CriticalAddonsOnly
-    operator: Equal
-    value: "true"
-    effect: NoSchedule
-
-metrics:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-    additionalLabels:
-      release: kube-prometheus-stack
-
-logLevel: info
-watchNamespace: ""
-githubAPIURL: https://api.github.com
 

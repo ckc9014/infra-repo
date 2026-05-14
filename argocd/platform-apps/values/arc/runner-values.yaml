@@ -2,64 +2,16 @@ githubConfigUrl: "https://github.com/ckc9014/training-job"
 githubConfigSecret: "github-app-auth"
 
 replicaCount: "1"
-
 runnerScaleSetName: "gpu-runner-set"
-
-serviceAccount:
-  name: "arc-controller-sa"
-
-labels:
-  - "gpu-runner"
 
 minRunners: "0"
 maxRunners: "5"
 
+labels:
+  - "gpu-runner"
+
 template:
   spec:
-    tolerations:
-      - key: "nvidia.com/gpu"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-    nodeSelector:
-      karpenter.sh/capacity-type: "spot"
     containers:
       - name: runner
         image: "ghcr.io/actions/actions-runner:latest"
-        resources:
-          limits:
-            cpu: "4"
-            memory: "16Gi"
-            nvidia.com/gpu: "1"
-          requests:
-            cpu: "2"
-            memory: "8Gi"
-            nvidia.com/gpu: "1"
-        env:
-          - name: NVIDIA_VISIBLE_DEVICES
-            value: "all"
-
-containerMode:
-  type: "kubernetes"
-
-flags:
-  excludeLabelPropagationPrefixes:
-    - "argocd.argoproj.io/instance"
-    - "app.kubernetes.io/component"
-    - "app.kubernetes.io/instance"
-    - "app.kubernetes.io/managed-by"
-    - "app.kubernetes.io/name"
-    - "app.kubernetes.io/part-of"
-    - "app.kubernetes.io/version"
-
-admissionWebhooks:
-  enabled: false
-
-metrics:
-  enabled: true
-  listenerAddr: ":8080"
-  listenerEndpoint: "/metrics"
-  serviceMonitor:
-    enabled: true
-    additionalLabels:
-      release: kube-prometheus-stack
