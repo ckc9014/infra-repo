@@ -7,7 +7,9 @@ maxRunners: 5
 
 template:
   spec:
-    volumes: []   
+    volumes:                         # <-- add this block
+      - name: work                   # <-- name must be "work"
+        emptyDir: {}                 # <-- use emptyDir (no PVC)
     tolerations:
       - key: nvidia.com/gpu
         operator: Equal
@@ -15,7 +17,6 @@ template:
         effect: NoSchedule
     containers:
       - name: runner
-        volumeMounts: []
         image: "ghcr.io/actions/actions-runner:latest"
         resources:
           limits:
@@ -24,9 +25,10 @@ template:
           requests:
             cpu: "200m"
             memory: "8Gi"
+        # volumeMounts are handled by the chart automatically for the "work" volume
 
 containerMode:
- type: kubernetes-novolume
+  type: kubernetes                   # <-- back to kubernetes mode
 
 controllerServiceAccount:
   namespace: "arc-systems"
