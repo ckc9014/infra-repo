@@ -18,9 +18,46 @@ jobs:
   env:
     uses: ./.github/workflows/determine-environment.yaml
 
-  destroy-manifests:
+  # ----------------------------------------------------------------------
+  # Pre‑destroy cleanup: remove finalizers and delete workload namespaces
+  # ----------------------------------------------------------------------
+  cleanup-cluster:
     runs-on: ubuntu-latest
     needs: env
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform and AWS (infrastructure)
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          working-directory: ./terraform/infrastructure
+          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+          tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+
+      - name: Get cluster name
+        id: get_cluster
+        working-directory: ./terraform/infrastructure
+        run: echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
+
+      - name: Configure kubectl
+        run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
+
+      - name: Remove finalizers from all ArgoCD Applications
+        run: |
+          kubectl get applications -n argocd -o name 2>/dev/null | xargs -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
+
+      - name: Delete workload namespaces (ignore errors if already gone)
+        run: |
+          kubectl delete namespace monitoring gpu-operator arc-systems training argo-rollouts --ignore-not-found || true
+
+  # ----------------------------------------------------------------------
+  # Destroy manifests (platform resources)
+  # ----------------------------------------------------------------------
+  destroy-manifests:
+    runs-on: ubuntu-latest
+    needs: [env, cleanup-cluster]
     steps:
       - uses: actions/checkout@v4
 
@@ -43,7 +80,9 @@ jobs:
           -var="aws_region=${{ vars.AWS_REGION }}" \
           -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
 
-
+  # ----------------------------------------------------------------------
+  # Destroy CRDs (Karpenter NodePool, EC2NodeClass, etc.)
+  # ----------------------------------------------------------------------
   destroy-crds:
     runs-on: ubuntu-latest
     needs: [env, destroy-manifests]
