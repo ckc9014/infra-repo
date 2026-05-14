@@ -11,6 +11,9 @@ template:
         operator: Equal
         value: "true"
         effect: NoSchedule
+    volumes:
+      - name: ephemeral-storage
+        emptyDir: {}
     containers:
       - name: runner
         image: "ghcr.io/actions/actions-runner:latest"
