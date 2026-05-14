@@ -1,3 +1,11 @@
+# Global tolerations for all components
+global:
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+
 prometheusOperator:
   tolerations:
     - key: CriticalAddonsOnly
@@ -20,7 +28,6 @@ prometheusOperator:
           value: "true"
           effect: NoSchedule
 
-# Prometheus server
 prometheus:
   prometheusSpec:
     tolerations:
@@ -46,7 +53,6 @@ prometheus:
             requests:
               storage: 10Gi
 
-# Alertmanager
 alertmanager:
   alertmanagerSpec:
     tolerations:
@@ -70,7 +76,6 @@ alertmanager:
             requests:
               storage: 2Gi
 
-# Grafana
 grafana:
   enabled: true
   adminPassword: admin
@@ -100,7 +105,6 @@ grafana:
       enabled: true
       searchNamespace: ALL
 
-# Node Exporter (DaemonSet)
 nodeExporter:
   enabled: true
   tolerations:
@@ -116,7 +120,6 @@ nodeExporter:
       cpu: 100m
       memory: 100Mi
 
-# kube-state-metrics
 kube-state-metrics:
   enabled: true
   tolerations:
@@ -132,7 +135,6 @@ kube-state-metrics:
       cpu: 100m
       memory: 256Mi
 
-# ---- Global discovery settings ----
 serviceMonitorSelectorNilUsesHelmValues: false
 podMonitorSelectorNilUsesHelmValues: false
 ruleSelectorNilUsesHelmValues: false
