@@ -15,3 +15,21 @@ template:
     containers:
       - name: runner
         image: "ghcr.io/actions/actions-runner:latest"
+    tolerations:
+      - key: nvidia.com/gpu
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+# Toleration for the listener pod (runs on system nodes)
+listenerTemplate:
+  metadata:
+    labels:
+      app: arc-runner-listener
+  spec:
+    tolerations:
+      - key: CriticalAddonsOnly
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+

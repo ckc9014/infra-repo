@@ -9,3 +9,8 @@ resources:
     cpu: "200m"
     memory: "256Mi"
 
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
