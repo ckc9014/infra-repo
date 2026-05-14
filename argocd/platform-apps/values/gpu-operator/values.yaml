@@ -53,6 +53,7 @@ nfd:
         value: "true"
         effect: "NoSchedule"
   master:
+    enableTaints: true
     tolerations:
       - key: "CriticalAddonsOnly"
         operator: "Equal"
