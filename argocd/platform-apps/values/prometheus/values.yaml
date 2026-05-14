@@ -1,14 +1,19 @@
-# Prometheus Operator admission webhook jobs (one-time init)
 prometheusOperator:
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
   admissionWebhooks:
     createJob:
+      enabled: true
       tolerations:
         - key: CriticalAddonsOnly
           operator: Equal
           value: "true"
           effect: NoSchedule
-    patch:
-      enabled : true
+    patchJob:
+      enabled: true
       tolerations:
         - key: CriticalAddonsOnly
           operator: Equal
@@ -68,7 +73,7 @@ alertmanager:
 # Grafana
 grafana:
   enabled: true
-  adminPassword: admin   # change for production
+  adminPassword: admin
   tolerations:
     - key: CriticalAddonsOnly
       operator: Equal
@@ -76,7 +81,7 @@ grafana:
       effect: NoSchedule
   persistence:
     enabled: true
-    storageClassName: gp2 
+    storageClassName: gp2
     size: 5Gi
   resources:
     requests:
