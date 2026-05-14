@@ -1,11 +1,27 @@
+# Prometheus Operator admission webhook jobs (one-time init)
+prometheusOperator:
+  admissionWebhooks:
+    createJob:
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+    patchJob:
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+
+# Prometheus server
 prometheus:
-  enabled: true                    
   prometheusSpec:
     tolerations:
-      - key: "CriticalAddonsOnly"
-        operator: "Equal"
+      - key: CriticalAddonsOnly
+        operator: Equal
         value: "true"
-        effect: "NoSchedule"
+        effect: NoSchedule
     retention: 1d
     retentionSize: 5GB
     resources:
@@ -23,18 +39,40 @@ prometheus:
           resources:
             requests:
               storage: 10Gi
-  serviceMonitorSelectorNilUsesHelmValues: false
-  podMonitorSelectorNilUsesHelmValues: false
-  ruleSelectorNilUsesHelmValues: false
 
+# Alertmanager
+alertmanager:
+  alertmanagerSpec:
+    tolerations:
+      - key: CriticalAddonsOnly
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+
+# Grafana
 grafana:
-  tolerations:
-    - key: "CriticalAddonsOnly"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
   enabled: true
-  adminPassword: admin
+  adminPassword: admin   # change for production
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
   persistence:
     enabled: true
     size: 5Gi
@@ -55,37 +93,14 @@ grafana:
       enabled: true
       searchNamespace: ALL
 
-alertmanager:
-  enabled: true                    
-  alertmanagerSpec:
-    tolerations:
-      - key: "CriticalAddonsOnly"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        cpu: 100m
-        memory: 256Mi
-    storage:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: gp3
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 2Gi
-
+# Node Exporter (DaemonSet)
 nodeExporter:
   enabled: true
   tolerations:
-    - key: "CriticalAddonsOnly"
-      operator: "Equal"
+    - key: CriticalAddonsOnly
+      operator: Equal
       value: "true"
-      effect: "NoSchedule"
+      effect: NoSchedule
   resources:
     requests:
       cpu: 50m
@@ -94,13 +109,14 @@ nodeExporter:
       cpu: 100m
       memory: 100Mi
 
+# kube-state-metrics
 kube-state-metrics:
   enabled: true
   tolerations:
-    - key: "CriticalAddonsOnly"
-      operator: "Equal"
+    - key: CriticalAddonsOnly
+      operator: Equal
       value: "true"
-      effect: "NoSchedule"
+      effect: NoSchedule
   resources:
     requests:
       cpu: 50m
@@ -108,3 +124,8 @@ kube-state-metrics:
     limits:
       cpu: 100m
       memory: 256Mi
+
+# ---- Global discovery settings ----
+serviceMonitorSelectorNilUsesHelmValues: false
+podMonitorSelectorNilUsesHelmValues: false
+ruleSelectorNilUsesHelmValues: false
