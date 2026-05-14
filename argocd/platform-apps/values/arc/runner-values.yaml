@@ -15,6 +15,10 @@ template:
         operator: Equal
         value: "true"
         effect: NoSchedule
+      - key: CriticalAddonsOnly       # <-- add this to tolerate the taint
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
     containers:
       - name: runner
         image: "ghcr.io/actions/actions-runner:latest"
