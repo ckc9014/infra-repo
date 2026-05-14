@@ -1,8 +1,7 @@
 githubConfigUrl: "https://github.com/ckc9014/training-job"
 githubConfigSecret: "github-app-auth"
 runnerScaleSetName: "gpu-runner-set"
-labels: 
- custom-label: "gpu-runner"
+labels: {} 
 minRunners: 0
 maxRunners: 5
 template:
@@ -24,3 +23,6 @@ template:
             memory: "8Gi"
 containerMode:
   type: "kubernetes"
+controllerServiceAccount:
+  namespace: "arc-systems"  
+  name: "arc-gha-rs-controller"
