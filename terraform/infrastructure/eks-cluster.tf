@@ -52,7 +52,7 @@ module "eks" {
 
       desired_size = 4
       min_size     = 4
-      max_size     = 4
+      max_size     = 5
 
       subnet_ids = module.vpc.private_subnets
 
