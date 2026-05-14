@@ -17,7 +17,7 @@ spec:
     - deviceName: /dev/xvda
       ebs:
         volumeSize: "100Gi"
-        volumeType: gp3
+        volumeType: gp2
         encrypted: true
   tags:
     karpenter.sh/discovery: ${cluster_name}

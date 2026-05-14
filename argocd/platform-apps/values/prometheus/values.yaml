@@ -76,6 +76,7 @@ grafana:
       effect: NoSchedule
   persistence:
     enabled: true
+    storageClassName: gp2 
     size: 5Gi
   resources:
     requests:
