@@ -32,6 +32,9 @@ template:
             memory: "8Gi"
 containerMode:
   type: "kubernetes"
+  kubernetes:
+    workVolume:
+      emptyDir: {} 
 controllerServiceAccount:
   namespace: "arc-systems"  
   name: "arc-gha-rs-controller"
