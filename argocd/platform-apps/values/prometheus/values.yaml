@@ -1,11 +1,3 @@
-# Global tolerations for all components
-global:
-  tolerations:
-    - key: CriticalAddonsOnly
-      operator: Equal
-      value: "true"
-      effect: NoSchedule
-
 prometheusOperator:
   tolerations:
     - key: CriticalAddonsOnly
