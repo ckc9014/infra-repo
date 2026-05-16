@@ -14,7 +14,6 @@ listenerTemplate:
         effect: NoSchedule
     containers:
       - name: listener
-        image: "ghcr.io/actions/actions-runner:latest"
         resources:
           requests:
             cpu: 100m
