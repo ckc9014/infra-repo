@@ -21,7 +21,10 @@ spec:
           values: ["spot", "on-demand"]
         - key: node.kubernetes.io/instance-type
           operator: In
-          values: ["g4dn.xlarge", "g4dn.2xlarge", "g5.xlarge"]
+          values: ["g4dn.xlarge"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot"]
       taints:
         - key: nvidia.com/gpu
           value: "true"
