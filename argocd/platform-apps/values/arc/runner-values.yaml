@@ -12,13 +12,16 @@ listenerTemplate:
         operator: Equal
         value: "true"
         effect: NoSchedule
-    resources:
-      requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        cpu: 200m
-        memory: 512Mi
+    containers:
+      - name: listener
+        image: "ghcr.io/actions/actions-runner:latest"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
 
 template:
   spec:
