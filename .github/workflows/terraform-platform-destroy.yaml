@@ -25,51 +25,67 @@ jobs:
     runs-on: ubuntu-latest
     needs: env
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Terraform and AWS (infrastructure)
-        uses: ./.github/actions/setup-terraform-oidc
-        with:
-          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
-          working-directory: ./terraform/infrastructure
-          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-          tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
-
-      - name: Get cluster name
-        id: get_cluster
+    - name: Setup Terraform and AWS (infrastructure)
+      uses: ./.github/actions/setup-terraform-oidc
+      with:
+        aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+        aws-region: ${{ vars.AWS_REGION }}
         working-directory: ./terraform/infrastructure
-        run: echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
+        tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+        tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
 
-      - name: Configure kubectl
-        run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
+    - name: Get cluster name
+      id: get_cluster
+      working-directory: ./terraform/infrastructure
+      run: echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
 
-      - name: Remove finalizers from all ArgoCD Applications
-        run: |
-          kubectl get applications -n argocd -o name 2>/dev/null | xargs -r -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
+    - name: Configure kubectl
+      run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
 
-      - name: Delete workload namespaces with force
-        run: |
-          NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
-          for ns in $NAMESPACES; do
-            if kubectl get ns $ns &>/dev/null; then
-              echo "Deleting namespace $ns"
-              kubectl delete ns $ns --wait=false --ignore-not-found &>/dev/null || true
-            fi
-          done
+    - name: Remove finalizers from all ArgoCD Applications
+      run: |
+        kubectl get applications -n argocd -o name 2>/dev/null | xargs -r -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
 
-      - name: Force remove finalizers from stuck namespaces
-        run: |
-          NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
-          for ns in $NAMESPACES; do
-            # If namespace still exists and has finalizers, remove them
-            if kubectl get ns $ns &>/dev/null; then
-              echo "Removing finalizers from namespace $ns"
-              kubectl patch ns $ns -p '{"metadata":{"finalizers":[]}}' --type=merge &>/dev/null || true
-              # Force delete again after finalizer removal
-              kubectl delete ns $ns --force --grace-period=0 --wait=false &>/dev/null || true
-            fi
-          done
+    - name: Remove finalizers from all resources inside target namespaces
+      run: |
+        NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
+        for ns in $NAMESPACES; do
+          if kubectl get namespace $ns &>/dev/null; then
+            echo "Processing namespace: $ns"
+            # Get all namespaced resource types (including custom resources)
+            for resource in $(kubectl api-resources --verbs=list --namespaced -o name 2>/dev/null); do
+              # For each resource, get all instances in the namespace and remove finalizers
+              kubectl get -n $ns $resource -o name 2>/dev/null | while read name; do
+                kubectl patch -n $ns $name --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null || true
+              done
+            done
+          fi
+        done
+
+    - name: Delete workload namespaces (soft delete first)
+      run: |
+        NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
+        for ns in $NAMESPACES; do
+          if kubectl get namespace $ns &>/dev/null; then
+            echo "Deleting namespace $ns"
+            kubectl delete namespace $ns --wait=false --ignore-not-found || true
+          fi
+        done
+
+    - name: Force remove namespace finalizers and final cleanup
+      run: |
+        NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
+        for ns in $NAMESPACES; do
+          if kubectl get namespace $ns &>/dev/null; then
+            echo "Force removing finalizers from namespace $ns"
+            # Remove finalizers from the namespace itself
+            kubectl patch namespace $ns -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
+            # Force delete the namespace
+            kubectl delete namespace $ns --force --grace-period=0 2>/dev/null || true
+          fi
+        done
   # ----------------------------------------------------------------------
   # Destroy manifests (platform resources)
   # ----------------------------------------------------------------------
