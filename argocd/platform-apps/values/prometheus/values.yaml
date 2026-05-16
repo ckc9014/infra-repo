@@ -1,25 +1,12 @@
 prometheusOperator:
   enabled: true
+  admissionWebhooks:
+    enabled: false          
   tolerations:
     - key: CriticalAddonsOnly
       operator: Equal
       value: "true"
       effect: NoSchedule
-  admissionWebhooks:
-    createJob:
-      enabled: true
-      tolerations:
-        - key: CriticalAddonsOnly
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-    patchJob:
-      enabled: true
-      tolerations:
-        - key: CriticalAddonsOnly
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
 
 prometheus:
   prometheusSpec:
