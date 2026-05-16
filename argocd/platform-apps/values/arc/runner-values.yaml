@@ -5,6 +5,21 @@ labels: {}
 minRunners: 0
 maxRunners: 5
 
+listenerTemplate:
+  spec:
+    tolerations:
+      - key: CriticalAddonsOnly
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+
 template:
   spec:
     volumes:                         # <-- add this block
@@ -19,6 +34,17 @@ template:
         operator: Equal
         value: "true"
         effect: NoSchedule
+    nodeSelector:
+            node.kubernetes.io/instance-type: g4dn.xlarge     
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: karpenter.sh/nodepool
+                  operator: In
+                  values:
+                    - gpu-nodepool
     containers:
       - name: runner
         image: "ghcr.io/actions/actions-runner:latest"
@@ -32,7 +58,7 @@ template:
         # volumeMounts are handled by the chart automatically for the "work" volume
 
 containerMode:
-  type: kubernetes                   # <-- back to kubernetes mode
+  type: kubernetes                  
 
 controllerServiceAccount:
   namespace: "arc-systems"
