@@ -46,12 +46,30 @@ jobs:
 
       - name: Remove finalizers from all ArgoCD Applications
         run: |
-          kubectl get applications -n argocd -o name 2>/dev/null | xargs -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
+          kubectl get applications -n argocd -o name 2>/dev/null | xargs -r -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
 
-      - name: Delete workload namespaces (ignore errors if already gone)
+      - name: Delete workload namespaces with force
         run: |
-          kubectl delete namespace monitoring gpu-operator arc-systems training argo-rollouts --ignore-not-found || true
+          NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
+          for ns in $NAMESPACES; do
+            if kubectl get ns $ns &>/dev/null; then
+              echo "Deleting namespace $ns"
+              kubectl delete ns $ns --wait=false --ignore-not-found &>/dev/null || true
+            fi
+          done
 
+      - name: Force remove finalizers from stuck namespaces
+        run: |
+          NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
+          for ns in $NAMESPACES; do
+            # If namespace still exists and has finalizers, remove them
+            if kubectl get ns $ns &>/dev/null; then
+              echo "Removing finalizers from namespace $ns"
+              kubectl patch ns $ns -p '{"metadata":{"finalizers":[]}}' --type=merge &>/dev/null || true
+              # Force delete again after finalizer removal
+              kubectl delete ns $ns --force --grace-period=0 --wait=false &>/dev/null || true
+            fi
+          done
   # ----------------------------------------------------------------------
   # Destroy manifests (platform resources)
   # ----------------------------------------------------------------------
