@@ -39,7 +39,7 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:DescribeInstances",
           "ec2:RunInstances",
           "ec2:TerminateInstances",
-          "ec2:CreateFleet", 
+          "ec2:CreateFleet",                         # ✅ add
           "ec2:DescribeImages",
           "ec2:DescribeInstanceTypes",
           "ec2:DescribeInstanceTypeOfferings",
@@ -52,19 +52,17 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:DescribeLaunchTemplates",
           "ec2:CreateLaunchTemplate",
           "ec2:DeleteLaunchTemplate",
-          "ec2:CreateLaunchTemplateVersion",     
-          "ec2:DeleteLaunchTemplateVersions", 
+          "ec2:CreateLaunchTemplateVersion",        # recommended
+          "ec2:DeleteLaunchTemplateVersions",      # recommended
           "iam:PassRole",
           "iam:GetInstanceProfile",
           "iam:ListInstanceProfiles",
-          "iam:CreateInstanceProfile",              
-          "iam:AddRoleToInstanceProfile",            
-          "iam:TagInstanceProfile",
-          "iam:CreateInstanceProfile",        
-          "iam:AddRoleToInstanceProfile",     
-          "iam:TagInstanceProfile", 
+          "iam:CreateInstanceProfile",              # needed
+          "iam:AddRoleToInstanceProfile",          # needed
+          "iam:TagInstanceProfile",                # needed
           "eks:DescribeCluster",
-          "ssm:GetParameter"
+          "ssm:GetParameter",
+          "pricing:GetProducts"                    # needed for spot/on‑demand pricing
         ]
         Resource = "*"
       }
