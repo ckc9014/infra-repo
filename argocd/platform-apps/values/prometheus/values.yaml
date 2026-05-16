@@ -1,5 +1,4 @@
 prometheusOperator:
-  enabled: true
   admissionWebhooks:
     enabled: false          
   tolerations:
