@@ -109,6 +109,22 @@ resource "aws_iam_role" "karpenter_node" {
   }
 }
 
+resource "aws_iam_role_policy" "karpenter_node_list_access" {
+  name = "${local.name_prefix}-karpenter-node-list-access"
+  role = aws_iam_role.karpenter_node.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "eks:ListAccessEntries"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # Attach the required policies to the node role
 resource "aws_iam_role_policy_attachment" "karpenter_node_policies" {
   for_each = toset([
