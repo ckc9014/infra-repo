@@ -22,6 +22,25 @@ module "eks" {
 
     coredns = {
       most_recent = true
+      # Override the CoreDNS configuration to forward to Google's public DNS
+      configuration_values = jsonencode({
+        corefile = <<-EOT
+          .:53 {
+              errors
+              health
+              kubernetes cluster.local in-addr.arpa ip6.arpa {
+                  pods insecure
+                  fallthrough in-addr.arpa ip6.arpa
+              }
+              prometheus :9153
+              forward . 8.8.8.8 8.8.4.4
+              cache 30
+              loop
+              reload
+              loadbalance
+          }
+        EOT
+      })
     }
     kube-proxy = {
       most_recent = true
