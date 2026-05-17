@@ -28,6 +28,7 @@ module "eks" {
           .:53 {
               errors
               health
+              ready
               kubernetes cluster.local in-addr.arpa ip6.arpa {
                   pods insecure
                   fallthrough in-addr.arpa ip6.arpa
