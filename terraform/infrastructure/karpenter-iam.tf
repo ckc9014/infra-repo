@@ -125,20 +125,9 @@ resource "aws_iam_role_policy" "karpenter_node_list_access" {
   })
 }
 
-resource "aws_iam_role_policy" "karpenter_node_s3" {
-  name = "${local.name_prefix}-karpenter-node-s3"
-  role = aws_iam_role.karpenter_node.name
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = "s3:PutObject"
-        Resource = "arn:aws:s3:::training-bucket-02609053/*"   # your bucket ARN
-      }
-    ]
-  })
+resource "aws_iam_role_policy_attachment" "karpenter_node_s3_full" {
+  role       = aws_iam_role.karpenter_node.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
 # Attach the required policies to the node role
