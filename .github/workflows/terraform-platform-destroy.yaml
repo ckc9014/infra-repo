@@ -23,74 +23,55 @@ jobs:
   # ----------------------------------------------------------------------
   cleanup-cluster:
     runs-on: ubuntu-latest
+    timeout-minutes: 10                     # 🔥 prevent infinite wait
     needs: env
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup Terraform and AWS (infrastructure)
-      uses: ./.github/actions/setup-terraform-oidc
-      with:
-        aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-        aws-region: ${{ vars.AWS_REGION }}
+      - name: Setup Terraform and AWS (infrastructure)
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          working-directory: ./terraform/infrastructure
+          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+          tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+
+      - name: Get cluster name
+        id: get_cluster
         working-directory: ./terraform/infrastructure
-        tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-        tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+        run: echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
 
-    - name: Get cluster name
-      id: get_cluster
-      working-directory: ./terraform/infrastructure
-      run: echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
+      - name: Configure kubectl
+        run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
 
-    - name: Configure kubectl
-      run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
+      - name: Remove finalizers from ArgoCD Applications
+        run: |
+          kubectl get applications -n argocd -o name 2>/dev/null | xargs -r -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
 
-    - name: Remove finalizers from all ArgoCD Applications
-      run: |
-        kubectl get applications -n argocd -o name 2>/dev/null | xargs -r -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
+      - name: Force delete workload namespaces (no soft delete)
+        run: |
+          NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
+          for ns in $NAMESPACES; do
+            if kubectl get namespace $ns &>/dev/null; then
+              echo "Deleting namespace $ns"
+              kubectl delete namespace $ns --ignore-not-found --wait=false || true
+            fi
+          done
+          # Force remove finalizers and nuke any stuck namespaces
+          for ns in $NAMESPACES; do
+            if kubectl get namespace $ns &>/dev/null; then
+              kubectl patch namespace $ns -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
+              kubectl delete namespace $ns --force --grace-period=0 2>/dev/null || true
+            fi
+          done
 
-    - name: Remove finalizers from all resources inside target namespaces
-      run: |
-        NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
-        for ns in $NAMESPACES; do
-          if kubectl get namespace $ns &>/dev/null; then
-            echo "Processing namespace: $ns"
-            # Get all namespaced resource types (including custom resources)
-            for resource in $(kubectl api-resources --verbs=list --namespaced -o name 2>/dev/null); do
-              # For each resource, get all instances in the namespace and remove finalizers
-              kubectl get -n $ns $resource -o name 2>/dev/null | while read name; do
-                kubectl patch -n $ns $name --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null || true
-              done
-            done
-          fi
-        done
-
-    - name: Delete workload namespaces (soft delete first)
-      run: |
-        NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
-        for ns in $NAMESPACES; do
-          if kubectl get namespace $ns &>/dev/null; then
-            echo "Deleting namespace $ns"
-            kubectl delete namespace $ns --wait=false --ignore-not-found || true
-          fi
-        done
-
-    - name: Force remove namespace finalizers and final cleanup
-      run: |
-        NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
-        for ns in $NAMESPACES; do
-          if kubectl get namespace $ns &>/dev/null; then
-            echo "Force removing finalizers from namespace $ns"
-            # Remove finalizers from the namespace itself
-            kubectl patch namespace $ns -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
-            # Force delete the namespace
-            kubectl delete namespace $ns --force --grace-period=0 2>/dev/null || true
-          fi
-        done
   # ----------------------------------------------------------------------
   # Destroy manifests (platform resources)
   # ----------------------------------------------------------------------
   destroy-manifests:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [env, cleanup-cluster]
     steps:
       - uses: actions/checkout@v4
@@ -104,21 +85,28 @@ jobs:
           tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
           tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
 
+      # Pre‑destroy: remove problematic CRDs that may have finalizers
+      - name: Remove Karpenter CRDs (if present)
+        run: |
+          kubectl delete nodepool gpu-nodepool --ignore-not-found 2>/dev/null || true
+          kubectl delete ec2nodeclass gpu-nodeclass --ignore-not-found 2>/dev/null || true
+
       - name: Terraform Destroy (manifests)
         working-directory: ./terraform/platform/manifests
         run: |
-          terraform destroy -auto-approve \
-          -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
-          -var="environment=${{ needs.env.outputs.environment }}" \
-          -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
-          -var="aws_region=${{ vars.AWS_REGION }}" \
-          -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
+          terraform destroy -auto-approve -parallelism=50 \
+            -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
+            -var="environment=${{ needs.env.outputs.environment }}" \
+            -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -var="aws_region=${{ vars.AWS_REGION }}" \
+            -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
 
   # ----------------------------------------------------------------------
   # Destroy CRDs (Karpenter NodePool, EC2NodeClass, etc.)
   # ----------------------------------------------------------------------
   destroy-crds:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [env, destroy-manifests]
     steps:
       - uses: actions/checkout@v4
@@ -135,9 +123,9 @@ jobs:
       - name: Terraform Destroy (crds)
         working-directory: ./terraform/platform/crds
         run: |
-          terraform destroy -auto-approve \
-          -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
-          -var="environment=${{ needs.env.outputs.environment }}" \
-          -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
-          -var="aws_region=${{ vars.AWS_REGION }}" \
-          -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
+          terraform destroy -auto-approve -parallelism=50 \
+            -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
+            -var="environment=${{ needs.env.outputs.environment }}" \
+            -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -var="aws_region=${{ vars.AWS_REGION }}" \
+            -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
