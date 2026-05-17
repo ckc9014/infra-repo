@@ -60,6 +60,7 @@ resource "aws_iam_policy" "karpenter_controller" {
           "iam:CreateInstanceProfile",              # needed
           "iam:AddRoleToInstanceProfile",          # needed
           "iam:TagInstanceProfile",                # needed
+          "iam:CreateServiceLinkedRole",
           "eks:DescribeCluster",
           "ssm:GetParameter",
           "pricing:GetProducts"                    # needed for spot/on‑demand pricing
