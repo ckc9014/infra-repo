@@ -32,3 +32,9 @@ module "vpc" {
     ManagedBy   = "Terraform"
   }
 }
+
+resource "aws_ec2_tag" "karpenter_discovery_cluster_sg" {
+  resource_id = module.eks.cluster_security_group_id
+  key         = "karpenter.sh/discovery"
+  value       = local.cluster_name
+}
