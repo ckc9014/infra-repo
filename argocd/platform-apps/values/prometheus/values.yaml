@@ -1,5 +1,10 @@
 prometheusOperator:
   enabled: true
+  tolerations:                             
+    - key: CriticalAddonsOnly
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
   admissionWebhooks:
     enabled: true
     create:
