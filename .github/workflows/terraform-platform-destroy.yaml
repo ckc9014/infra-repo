@@ -23,7 +23,7 @@ jobs:
   # ----------------------------------------------------------------------
   cleanup-cluster:
     runs-on: ubuntu-latest
-    timeout-minutes: 10                     # 🔥 prevent infinite wait
+    timeout-minutes: 10                     # prevent infinite wait
     needs: env
     steps:
       - uses: actions/checkout@v4
@@ -49,20 +49,34 @@ jobs:
         run: |
           kubectl get applications -n argocd -o name 2>/dev/null | xargs -r -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
 
-      - name: Force delete workload namespaces (no soft delete)
+      - name: Delete custom resources that may have finalizers
+        run: |
+          # Delete monitoring custom resources in target namespaces
+          for ns in monitoring gpu-operator arc-systems training argo-rollouts; do
+            kubectl delete servicemonitor --all -n $ns --ignore-not-found 2>/dev/null || true
+            kubectl delete prometheusrule --all -n $ns --ignore-not-found 2>/dev/null || true
+            kubectl delete application --all -n $ns --ignore-not-found 2>/dev/null || true
+          done
+          # Delete cluster-scoped Karpenter resources
+          kubectl delete nodeclaim --all --ignore-not-found 2>/dev/null || true
+          kubectl delete nodepool gpu-nodepool --ignore-not-found 2>/dev/null || true
+          kubectl delete ec2nodeclass gpu-nodeclass --ignore-not-found 2>/dev/null || true
+
+      - name: Soft delete workload namespaces
+        run: |
+          NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
+          for ns in $NAMESPACES; do
+            kubectl delete namespace $ns --ignore-not-found --wait=false || true
+          done
+
+      - name: Force delete stuck namespaces (API finalize)
         run: |
           NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts"
           for ns in $NAMESPACES; do
             if kubectl get namespace $ns &>/dev/null; then
-              echo "Deleting namespace $ns"
-              kubectl delete namespace $ns --ignore-not-found --wait=false || true
-            fi
-          done
-          # Force remove finalizers and nuke any stuck namespaces
-          for ns in $NAMESPACES; do
-            if kubectl get namespace $ns &>/dev/null; then
-              kubectl patch namespace $ns -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
-              kubectl delete namespace $ns --force --grace-period=0 2>/dev/null || true
+              echo "Force removing finalizers from namespace $ns via /finalize"
+              kubectl get namespace $ns -o json | jq '.spec.finalizers = []' | kubectl replace --raw "/api/v1/namespaces/$ns/finalize" -f - || true
+              kubectl delete namespace $ns --force --grace-period=0 --wait=false || true
             fi
           done
 
