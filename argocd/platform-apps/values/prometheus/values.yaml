@@ -100,7 +100,7 @@ grafana:
     type: LoadBalancer
   grafana.ini:
     server:
-      root_url: a09e5789123264a5bbfe4f7afdcb0a00-1541030030.us-east-2.elb.amazonaws.com
+      root_url: http://a09e5789123264a5bbfe4f7afdcb0a00-1541030030.us-east-2.elb.amazonaws.com
 
 nodeExporter:
   enabled: true
