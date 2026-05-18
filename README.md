@@ -28,15 +28,6 @@ This repository defines a production‑ready infrastructure for AI/ML training o
 - ✅ **Self‑Hosted GitHub Actions Runners** – ARC provides GPU‑capable runners for CI/CD.
 - ✅ **Taints & Tolerations** – system nodes (t3.small) host control‑plane components; GPU nodes are tainted to isolate workloads.
 
-
-### One‑time manual setup (required before deploying)
-
-- **S3 bucket** for Terraform remote state:  
-  Create manually (AWS Console or CLI) with a fixed, globally unique name.
-
-- **OIDC provider and IAM role** for GitHub Actions:  
-  Create the IAM OIDC provider and a role that GitHub Actions can assume.
-
 ## 🧰 One‑time Manual Setup (Required Before First Deployment)
 
 ### 1. Create an S3 bucket for Terraform state
