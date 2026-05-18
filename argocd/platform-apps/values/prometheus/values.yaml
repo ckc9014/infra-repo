@@ -91,11 +91,12 @@ grafana:
     enabled: false
   sidecar:
     dashboards:
-      enabled: true
+      enabled: false
       searchNamespace: ALL
     datasources:
-      enabled: true
+      enabled: false
       searchNamespace: ALL
+
 
 nodeExporter:
   enabled: true
