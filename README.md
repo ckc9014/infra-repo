@@ -17,7 +17,7 @@ This repository defines a production‑ready infrastructure for AI/ML training o
 | **Security** | EKS Pod Identity (for Karpenter), OIDC for GitHub Actions, IAM least privilege |
 | **Training Workload** | Simple PyTorch training script that validates GPU, exposes metrics, and uploads results to S3 |
 
-> 💡 The platform is designed to run both training jobs (e.g., PyTorch) and inference services. The training job is implemented in a [separate repository](https://github.com/ckc9014/training-job) and serves as a proof of concept.
+> 💡 The training job is implemented in a [separate repository](https://github.com/ckc9014/training-job) and serves as a proof of concept.
 
 ## 🚀 Key Features
 
@@ -90,33 +90,35 @@ The training job lives in a [separate repo](https://github.com/ckc9014/training-
 ---
 
 ## 🏗 Repository Structure
+
+```text
 infra-repo/
 ├── .github/
-│ ├── actions/setup-terraform-oidc # Reusable OIDC action
-│ └── workflows/
-│   ├── terraform-plan.yaml # Reusable plan workflow (used by main workflows)
-│   ├── terraform-apply.yaml # Reusable apply workflow (used by main workflows)
-│   ├── terraform-infra-main.yaml # Infrastructure (VPC + EKS + IAM)
-│   ├── terraform-platform-main.yaml # Platform (ArgoCD, Karpenter, Prometheus, ARC)
-│   ├── terraform-infra-destroy.yaml
-│   └── terraform-platform-destroy.yaml
+│   ├── actions/setup-terraform-oidc/          # Reusable OIDC action
+│   └── workflows/
+│       ├── terraform-plan.yaml                # Reusable plan workflow
+│       ├── terraform-apply.yaml               # Reusable apply workflow
+│       ├── determine-environment.yaml
+│       ├── apply-infra.yaml                   # Infrastructure (VPC+EKS+IAM)
+│       ├── apply-platform.yaml                # Platform (ArgoCD, Karpenter, Prometheus, ARC)
+│       ├── destroy-infra.yaml
+│       └── destroy-platform.yaml
 ├── terraform/
-│ ├── infrastructure/ # VPC, EKS, IAM, add‑ons
-│ │ ├── backend,tf, vpc.tf, eks-cluster.tf, karpenter-iam.tf, etc
-│ │ └── envs/{dev,prod}.tfvars
-│ └── platform/ # ArgoCD, Karpenter Helm, Prometheus stack, ARC
-│   ├── crds/ # Karpenter NodePool + EC2NodeClass (kubernetes_manifest)
-│   │ └── envs/{dev,prod}.tfvars
-│   └── manifests/ # Helm releases (ArgoCD, Karpenter, etc.)
-│     └── envs/{dev,prod}.tfvars
+│   ├── infrastructure/                        # VPC, EKS, IAM, add‑ons
+│   │   ├── backend.tf, vpc.tf, eks-cluster.tf, karpenter-iam.tf, etc.
+│   │   └── envs/{dev,prod}.tfvars
+│   └── platform/                              # ArgoCD, Karpenter Helm, Prometheus, ARC
+│       ├── crds/                              # Karpenter NodePool + EC2NodeClass (kubernetes_manifest)
+│       │   └── envs/{dev,prod}.tfvars
+│       └── manifests/                         # Helm releases (ArgoCD, Karpenter, etc.)
+│           └── envs/{dev,prod}.tfvars
 ├── argocd/
-│ ├── platform-root.yaml # App‑of‑Apps (platform components)
-│ ├── apps-root.yaml # App‑of‑Apps (user workloads)
-│ ├── applications/ # User workloads (training-job)
-│ ├── monitoring/ # Custom Prometheus rules and ServiceMonitors
-│ └── platform-apps/ # Child applications (monitoring-stack, gpu-operator, arc, etc.) 
-│   └── values/ # Helm values files (referenced by ArgoCD)  
-├── karpenter/ # Templates for NodePool and EC2NodeClass
-├── images/ # Screenshots for proof-of-concept (pods on cluster, Grafana metrics, S3 result)
+│   ├── platform-root.yaml                     # App‑of‑Apps (platform components)
+│   ├── apps-root.yaml                         # App‑of‑Apps (user workloads)
+│   ├── applications/                          # User workloads (training-job)
+│   ├── monitoring/                            # Custom Prometheus rules & ServiceMonitors
+│   └── platform-apps/                         # Child applications (monitoring-stack, gpu-operator, arc, etc.)
+│       └── values/                            # Helm values files referenced by ArgoCD
+├── karpenter/                                 # Templates for NodePool and EC2NodeClass
+├── images/                                    # Screenshots: ArgoCD apps, Grafana metric, S3 result, pods
 └── README.md
-
