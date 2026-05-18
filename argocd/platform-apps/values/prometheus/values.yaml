@@ -96,6 +96,8 @@ grafana:
     datasources:
       enabled: true
       searchNamespace: ALL
+  service:
+    type: LoadBalancer  
 
 nodeExporter:
   enabled: true
