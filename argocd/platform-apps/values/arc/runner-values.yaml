@@ -1,10 +1,11 @@
 githubConfigUrl: "https://github.com/ckc9014/training-job"
 githubConfigSecret: "github-app-auth"
 runnerScaleSetName: "gpu-runner-set"
-labels: 
-  - "gpu-runner"  
-minRunners: 0
-maxRunners: 5
+labels: {}                                   # no top‑level labels needed
+runnerPodLabels:
+  gpu-runner: "true"                         # required for runs-on: gpu-runner
+minRunners: "0"
+maxRunners: "5"
 
 listenerTemplate:
   spec:
@@ -25,20 +26,20 @@ listenerTemplate:
 
 template:
   spec:
-    volumes:                         # <-- add this block
-      - name: work                   # <-- name must be "work"
-        emptyDir: {}                 # <-- use emptyDir (no PVC)
+    volumes:
+      - name: work
+        emptyDir: {}
     tolerations:
       - key: nvidia.com/gpu
         operator: Equal
         value: "true"
         effect: NoSchedule
-      - key: CriticalAddonsOnly       # <-- add this to tolerate the taint
+      - key: CriticalAddonsOnly
         operator: Equal
         value: "true"
         effect: NoSchedule
     nodeSelector:
-            node.kubernetes.io/instance-type: g4dn.xlarge     
+      node.kubernetes.io/instance-type: g4dn.xlarge
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -53,7 +54,7 @@ template:
         image: "ghcr.io/actions/actions-runner:latest"
         resources:
           limits:
-            cpu: "2000m"          # also increase CPU (200m is too low for training)
+            cpu: "2000m"
             memory: "16Gi"
             nvidia.com/gpu: "1"
           requests:
@@ -62,7 +63,7 @@ template:
             nvidia.com/gpu: "1"
 
 containerMode:
-  type: kubernetes                  
+  type: kubernetes
 
 controllerServiceAccount:
   namespace: "arc-systems"
