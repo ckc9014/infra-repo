@@ -53,12 +53,13 @@ template:
         image: "ghcr.io/actions/actions-runner:latest"
         resources:
           limits:
-            cpu: "200m"
+            cpu: "2000m"          # also increase CPU (200m is too low for training)
             memory: "16Gi"
+            nvidia.com/gpu: "1"
           requests:
-            cpu: "200m"
+            cpu: "1000m"
             memory: "8Gi"
-        # volumeMounts are handled by the chart automatically for the "work" volume
+            nvidia.com/gpu: "1"
 
 containerMode:
   type: kubernetes                  
