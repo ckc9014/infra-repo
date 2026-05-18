@@ -4,7 +4,7 @@ metadata:
   name: training-job-monitor
   namespace: monitoring
   labels:
-    release: kube-prometheus-stack  
+    release: monitoring-stack 
 spec:
   selector:
     matchLabels:
