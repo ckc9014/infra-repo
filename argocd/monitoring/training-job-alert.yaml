@@ -4,6 +4,7 @@ metadata:
   name: gpu-training-alerts
   namespace: monitoring
   labels:
+    release: monitoring-stack
     app: kube-prometheus-stack
     role: alert-rules
 spec:
