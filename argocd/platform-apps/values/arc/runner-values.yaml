@@ -53,6 +53,7 @@ template:
     containers:
       - name: runner
         image: "ghcr.io/actions/actions-runner:latest"
+        command: ["sleep", "infinity"]
         resources:
           limits:
             cpu: "2000m"
