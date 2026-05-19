@@ -82,13 +82,16 @@ The training job lives in a [separate repo](https://github.com/ckc9014/training-
 
 ## 🔧 Deployment Order
 
-The platform is deployed in two independent stages, each with its own Terraform state. **Always deploy infrastructure first, then platform.**
+The platform is deployed in **three stages** to ensure all dependencies are met.
 
-1. **Infrastructure** – creates VPC, EKS cluster, IAM roles, EBS CSI add‑on, etc.  
+1. **Infrastructure** – creates VPC, EKS cluster, IAM roles, EBS CSI add‑on, and an **ECR repository** for training images.  
    → Run `apply-infra.yaml` (workflow_dispatch or push to `main` when `terraform/infrastructure/**` changes).
 
-2. **Platform** – deploys ArgoCD, Karpenter, Prometheus stack, GPU Operator, ARC, and all GitOps manifests.  
-   → Run `apply-platform.yaml` **after** infrastructure succeeds.
+2. **Training image build** – in the [training‑repo](https://github.com/ckc9014/training-job), trigger the `build-and-push.yaml` workflow. This builds the Docker image and pushes it to the ECR repository created in step 1.  
+   ⚠️ **Wait for this step to complete** before proceeding. The training Job will fail with `ImagePullBackOff` if the image does not exist.
+
+3. **Platform** – deploys ArgoCD, Karpenter, Prometheus stack, GPU Operator, ARC, and all GitOps manifests (including the training Job).  
+   → Run `apply-platform.yaml` **after** infrastructure succeeds **and** the training image is available in ECR.
 
 ### Destroy order (reverse)
 
