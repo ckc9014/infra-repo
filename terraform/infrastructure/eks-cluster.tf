@@ -10,7 +10,7 @@ module "eks" {
 
   cluster_endpoint_public_access = true
 
-  # Enable IAM Roles for Service Accounts (IRSA)(optional)
+  # Enable IAM Roles for Service Accounts (IRSA)
   enable_irsa = true
 
   authentication_mode = "API_AND_CONFIG_MAP"
