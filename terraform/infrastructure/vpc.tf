@@ -44,9 +44,3 @@ resource "aws_ec2_tag" "karpenter_discovery_node_sg" {
   key         = "karpenter.sh/discovery"
   value       = local.cluster_name
 }
-
-resource "aws_ec2_tag" "remove_cluster_tag_from_node_sg" {
-  resource_id = module.eks.node_security_group_id
-  key         = "kubernetes.io/cluster/${local.cluster_name}"
-  value       = null
-}
