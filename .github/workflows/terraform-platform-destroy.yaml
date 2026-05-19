@@ -53,7 +53,7 @@ jobs:
   destroy-helm:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [env, destroy-manifests]   # ← must run after manifests
+    needs: [env, destroy-manifests]  
     steps:
       - uses: actions/checkout@v4
 

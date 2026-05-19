@@ -52,19 +52,19 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:DescribeLaunchTemplates",
           "ec2:CreateLaunchTemplate",
           "ec2:DeleteLaunchTemplate",
-          "ec2:CreateLaunchTemplateVersion",        # recommended
-          "ec2:DeleteLaunchTemplateVersions",      # recommended
+          "ec2:CreateLaunchTemplateVersion",        
+          "ec2:DeleteLaunchTemplateVersions",      
           "iam:PassRole",
           "iam:GetInstanceProfile",
           "iam:ListInstanceProfiles",
-          "iam:CreateInstanceProfile",              # needed
-          "iam:AddRoleToInstanceProfile",          # needed
-          "iam:TagInstanceProfile",                # needed
+          "iam:CreateInstanceProfile",           
+          "iam:AddRoleToInstanceProfile",          
+          "iam:TagInstanceProfile",                
           "iam:CreateServiceLinkedRole",
           "iam:DeleteInstanceProfile",
           "eks:DescribeCluster",
           "ssm:GetParameter",
-          "pricing:GetProducts"                    # needed for spot/on‑demand pricing
+          "pricing:GetProducts"                   
         ]
         Resource = "*"
       }

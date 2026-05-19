@@ -18,10 +18,10 @@ spec:
           values: ["linux"]
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot"]                     # only spot (on‑demand not needed)
+          values: ["spot"]                    
         - key: node.kubernetes.io/instance-type
           operator: In
-          values:                              # expanded list
+          values:                             
             - "g4dn.xlarge"
             - "g4dn.2xlarge"
             - "g5.xlarge"

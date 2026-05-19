@@ -10,7 +10,7 @@ module "eks" {
 
   cluster_endpoint_public_access = true
 
-  # Enable IAM Roles for Service Accounts (IRSA)
+  # Enable IAM Roles for Service Accounts (IRSA)(optional)
   enable_irsa = true
 
   authentication_mode = "API_AND_CONFIG_MAP"
@@ -80,7 +80,7 @@ module "eks" {
         {
           key    = "CriticalAddonsOnly"
           value  = "true"
-          effect = "NO_SCHEDULE" # or "NO_EXECUTE"
+          effect = "NO_SCHEDULE" 
         }
       ]
 

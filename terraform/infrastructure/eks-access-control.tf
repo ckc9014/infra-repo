@@ -18,5 +18,5 @@ resource "aws_eks_access_policy_association" "github_actions_admin" {
 resource "aws_eks_access_entry" "karpenter_nodes" {
   cluster_name      = module.eks.cluster_name
   principal_arn     = aws_iam_role.karpenter_node.arn
-  type              = "EC2_LINUX"   # or "STANDARD" for generic
+  type              = "EC2_LINUX"  
 }
