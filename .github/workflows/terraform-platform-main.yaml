@@ -120,6 +120,20 @@ jobs:
           --from-literal=github_app_private_key="${{ secrets.ARC_APP_PRIVATE_KEY }}" \
           -o yaml | kubectl apply -f -
 
+    - name: Wait for platform pods to be ready
+      run: |
+        echo "Waiting for ArgoCD..."
+        kubectl wait --for=condition=available --timeout=180s deployment/argocd-server -n argocd || true
+        echo "Waiting for Karpenter..."
+        kubectl wait --for=condition=available --timeout=180s deployment/karpenter -n kube-system || true
+        echo "Waiting for GPU Operator..."
+        kubectl wait --for=condition=available --timeout=180s deployment/gpu-operator -n gpu-operator || true
+        echo "Waiting for Prometheus stack..."
+        kubectl wait --for=condition=available --timeout=180s deployment/monitoring-stack-kube-prom-operator -n monitoring || true
+        echo "Waiting for ARC controller..."
+        kubectl wait --for=condition=available --timeout=180s deployment/arc -n arc-systems || true
+        sleep 10   # extra buffer for sidecars
+
     - name: Quick component check
       run: |
         echo "=== Verifying platform components ==="
