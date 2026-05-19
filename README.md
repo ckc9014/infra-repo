@@ -115,7 +115,7 @@ infra-repo/
 │       └── destroy-platform.yaml
 ├── terraform/
 │   ├── infrastructure/                    # VPC, EKS, IAM, add‑ons
-│   │   ├── backend.tf, vpc.tf, eks-cluster.tf, karpenter-iam.tf
+│   │   ├── backend.tf, vpc.tf, eks-cluster.tf, karpenter-iam.tf, etc
 │   │   └── envs/{dev,prod}.tfvars
 │   └── platform/
 │       ├── helm/                          # Helm releases (via terraform helm_release)
