@@ -167,3 +167,8 @@ These screenshots validate the entire pipeline: infrastructure → GPU provision
 - **Destroy workflow** – May occasionally hang due to finalizers; the `destroy-platform.yaml` includes a forced cleanup step (`/finalize` API) to handle stuck namespaces.
 
 - **GPU spot quota** – Requires a one‑time request to AWS Service Quotas (`All G and VT Spot Instance Requests`). Without quota, Karpenter cannot launch GPU nodes.
+
+---
+
+## 📄 License
+MIT
