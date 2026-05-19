@@ -80,36 +80,90 @@ The training job lives in a [separate repo](https://github.com/ckc9014/training-
 
 ---
 
+## 🔧 Deployment Order
+
+The platform is deployed in two independent stages, each with its own Terraform state. **Always deploy infrastructure first, then platform.**
+
+1. **Infrastructure** – creates VPC, EKS cluster, IAM roles, EBS CSI add‑on, etc.  
+   → Run `apply-infra.yaml` (workflow_dispatch or push to `main` when `terraform/infrastructure/**` changes).
+
+2. **Platform** – deploys ArgoCD, Karpenter, Prometheus stack, GPU Operator, ARC, and all GitOps manifests.  
+   → Run `apply-platform.yaml` **after** infrastructure succeeds.
+
+### Destroy order (reverse)
+
+1. **Platform** – destroy custom resources (manifests) first, then Helm releases (controllers).  
+   → Run `destroy-platform.yaml`.
+2. **Infrastructure** – destroy VPC, EKS, IAM.  
+   → Run `destroy-infra.yaml`.
+---
+
 ## 🏗 Repository Structure
 
 ```text
 infra-repo/
 ├── .github/
-│   ├── actions/setup-terraform-oidc/          # Reusable OIDC action
+│   ├── actions/
+│   │   └── setup-terraform-oidc/          # Reusable OIDC + Terraform action
 │   └── workflows/
-│       ├── terraform-plan.yaml                # Reusable plan workflow
-│       ├── terraform-apply.yaml               # Reusable apply workflow
+│       ├── terraform-plan.yaml            # Reusable plan workflow
+│       ├── terraform-apply.yaml           # Reusable apply workflow
 │       ├── determine-environment.yaml
-│       ├── apply-infra.yaml                   # Infrastructure (VPC+EKS+IAM)
-│       ├── apply-platform.yaml                # Platform (ArgoCD, Karpenter, Prometheus, ARC)
+│       ├── apply-infra.yaml               # Infrastructure (VPC+EKS+IAM)
+│       ├── apply-platform.yaml            # Platform (ArgoCD, Karpenter, Prometheus, ARC)
 │       ├── destroy-infra.yaml
 │       └── destroy-platform.yaml
 ├── terraform/
-│   ├── infrastructure/                        # VPC, EKS, IAM, add‑ons
-│   │   ├── backend.tf, vpc.tf, eks-cluster.tf, karpenter-iam.tf, etc.
+│   ├── infrastructure/                    # VPC, EKS, IAM, add‑ons
+│   │   ├── backend.tf, vpc.tf, eks-cluster.tf, karpenter-iam.tf
 │   │   └── envs/{dev,prod}.tfvars
-│   └── platform/                              # ArgoCD, Karpenter Helm, Prometheus, ARC
-│       ├── crds/                              # Karpenter NodePool + EC2NodeClass (kubernetes_manifest)
+│   └── platform/
+│       ├── helm/                          # Helm releases (via terraform helm_release)
+│       │   ├── argocd-helm.tf
+│       │   ├── karpenter-helm.tf
+│       │   ├── values/
+│       │   │   ├── argocd/values.yaml
+│       │   │   └── karpenter/values.yaml
 │       │   └── envs/{dev,prod}.tfvars
-│       └── manifests/                         # Helm releases (ArgoCD, Karpenter, etc.)
+│       └── manifests/                     # Kubernetes YAML resources (via kubernetes_manifest)
+│           ├── karpenter-crds.tf          # NodePool, EC2NodeClass
+│           ├── argocd-apps.tf             # ArgoCD Applications (optional)
 │           └── envs/{dev,prod}.tfvars
 ├── argocd/
-│   ├── platform-root.yaml                     # App‑of‑Apps (platform components)
-│   ├── apps-root.yaml                         # App‑of‑Apps (user workloads)
-│   ├── applications/                          # User workloads (training-job)
-│   ├── monitoring/                            # Custom Prometheus rules & ServiceMonitors
-│   └── platform-apps/                         # Child applications (monitoring-stack, gpu-operator, arc, etc.)
-│       └── values/                            # Helm values files referenced by ArgoCD
-├── karpenter/                                 # Templates for NodePool and EC2NodeClass
-├── images/                                    # Screenshots: ArgoCD apps, Grafana metric, S3 result, pods
+│   ├── platform-root.yaml                 # App‑of‑Apps for platform components
+│   ├── apps-root.yaml                     # App‑of‑Apps for user workloads
+│   ├── applications/                      # User workloads (training-job)
+│   ├── monitoring/                        # Custom PrometheusRules, ServiceMonitors (if not in Helm values)
+│   └── platform-apps/                     # Child applications (monitoring-stack, gpu-operator, arc, etc.)
+│       └── values/                        # Helm values files referenced by ArgoCD
+├── karpenter/                             # Templates for NodePool and EC2NodeClass (used by manifests/karpenter-crds.tf)
+├── images/                                # Screenshots for README (pods, S3 result, Prometheus alerts, etc.)
 └── README.md
+
+---
+
+## 🖼️ Screenshots (Proof of Concept)
+
+The `images/` folder contains evidence that the platform works end‑to‑end:
+
+- **`pods-running.png`** – All essential pods (ArgoCD, Karpenter, Prometheus, GPU Operator, ARC) are running.
+
+- **`s3-result.png`** – The training job uploaded `result.txt` to S3, proving GPU execution and storage integration.
+
+- **`prometheus-alerts.png`** – Prometheus UI displays the custom `GPUMissing` alert rule, confirming observability configuration.
+
+- **`node-exporter-metrics.png`** – A node exporter metric (e.g., `node_cpu_seconds_total`) shows Prometheus is actively scraping.
+
+- **`argocd-apps.png`** – ArgoCD applications are synced (with expected `OutOfSync` for completed jobs or dynamic ARC resources).
+
+These screenshots validate the entire pipeline: infrastructure → GPU provisioning → training → monitoring → GitOps.
+
+---
+
+## 📌 Notes
+
+- **OutOfSync in ArgoCD** – Completed Jobs (`training-job`) and dynamic ARC resources (listener, role binding) are expected to be `OutOfSync`. This does not affect functionality.
+
+- **Destroy workflow** – May occasionally hang due to finalizers; the `destroy-platform.yaml` includes a forced cleanup step (`/finalize` API) to handle stuck namespaces.
+
+- **GPU spot quota** – Requires a one‑time request to AWS Service Quotas (`All G and VT Spot Instance Requests`). Without quota, Karpenter cannot launch GPU nodes.
