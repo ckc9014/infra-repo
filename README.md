@@ -139,7 +139,7 @@ infra-repo/
 ├── karpenter/                             # Templates for NodePool and EC2NodeClass (used by manifests/karpenter-crds.tf)
 ├── images/                                # Screenshots for README (pods, S3 result, Prometheus alerts, etc.)
 └── README.md
-
+```
 ---
 
 ## 🖼️ Screenshots (Proof of Concept)
