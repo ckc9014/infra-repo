@@ -26,34 +26,34 @@ jobs:
   env:
     uses: ./.github/workflows/determine-environment.yaml
 
-  plan-crds:
+  plan-helm:
     needs: env
     uses: ./.github/workflows/terraform-plan.yaml
     with:
-      working-directory: ./terraform/platform/crds
+      working-directory: ./terraform/platform/helm
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
-      artifact-name: tfplan-crds
+      tf-state-key: platform/${{ needs.env.outputs.environment }}/helm/terraform.tfstate
+      artifact-name: tfplan-helm
       environment: ${{ needs.env.outputs.environment }}
 
-  apply-crds:
-    needs: [env, plan-crds]
+  apply-helm:
+    needs: [env, plan-helm]
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch')
     uses: ./.github/workflows/terraform-apply.yaml
     with:
-      working-directory: ./terraform/platform/crds
+      working-directory: ./terraform/platform/helm
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
-      artifact-name: tfplan-crds
+      tf-state-key: platform/${{ needs.env.outputs.environment }}/helm/terraform.tfstate
+      artifact-name: tfplan-helm
 
   plan-manifests:
-    needs: [env, apply-crds]  
+    needs: [env, apply-helm]  
     uses: ./.github/workflows/terraform-plan.yaml
     with:
       working-directory: ./terraform/platform/manifests
