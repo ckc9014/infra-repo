@@ -45,6 +45,10 @@ To allow GitHub Actions to assume an AWS IAM role without long‑lived keys, you
 
 In your `infra-repo` → **Settings → Secrets and variables → Actions**, add the following:
 
+### 4. Configure environment‑specific variables
+Before deploying the infrastructure, you must edit the Terraform variable files for your target environment (dev or prod).
+
+File location: terraform/infrastructure/envs/dev.tfvars (or prod.tfvars).
 #### Variables (non‑secret)
 
 | Variable | Example | Purpose |
