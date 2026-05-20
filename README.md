@@ -61,7 +61,7 @@ In your `infra-repo` → **Settings → Secrets and variables → Actions**, add
 | `ARC_APP_INSTALLATION_ID` | Installation ID | Found in the URL when you install the app |
 | `ARC_APP_PRIVATE_KEY` | Private key (.pem) | Generated in your GitHub App |
 
-> The platform workflow (`apply-platform.yaml`) creates a Kubernetes secret `github-app-auth` using these values.
+> The platform workflow (`terraform-platform-main.yaml`) creates a Kubernetes secret `github-app-auth` using these values.
 
 ### 4. Training repository prerequisites
 
@@ -85,20 +85,20 @@ The training job lives in a [separate repo](https://github.com/ckc9014/training-
 The platform is deployed in **three stages** to ensure all dependencies are met.
 
 1. **Infrastructure** – creates VPC, EKS cluster, IAM roles, EBS CSI add‑on, and an **ECR repository** for training images.  
-   → Run `apply-infra.yaml` (workflow_dispatch or push to `main` when `terraform/infrastructure/**` changes).
+   → Run `terraform-infra-main.yaml` (workflow_dispatch or push to `main` when `terraform/infrastructure/**` changes).
 
 2. **Training image build** – in the [training‑repo](https://github.com/ckc9014/training-job), trigger the `build-and-push.yaml` workflow. This builds the Docker image and pushes it to the ECR repository created in step 1.  
    ⚠️ **Wait for this step to complete** before proceeding. The training Job will fail with `ImagePullBackOff` if the image does not exist.
 
 3. **Platform** – deploys ArgoCD, Karpenter, Prometheus stack, GPU Operator, ARC, and all GitOps manifests (including the training Job).  
-   → Run `apply-platform.yaml` **after** infrastructure succeeds **and** the training image is available in ECR.
+   → Run `terraform-platform-main.yaml` **after** infrastructure succeeds **and** the training image is available in ECR.
 
 ### Destroy order (reverse)
 
 1. **Platform** – destroy custom resources (manifests) first, then Helm releases (controllers).  
-   → Run `destroy-platform.yaml`.
+   → Run `terraform-platform-destroy.yaml`.
 2. **Infrastructure** – destroy VPC, EKS, IAM.  
-   → Run `destroy-infra.yaml`.
+   → Run `terraform-infra-destroy.yaml`.
 ---
 
 ## 🏗 Repository Structure
@@ -167,7 +167,7 @@ These screenshots validate the entire pipeline: infrastructure → GPU provision
 
 - **OutOfSync in ArgoCD** – Completed Jobs (`training-job`) and dynamic ARC resources (listener, role binding) are expected to be `OutOfSync`. This does not affect functionality.
 
-- **Destroy workflow** – May occasionally hang due to finalizers; the `destroy-platform.yaml` includes a forced cleanup step (`/finalize` API) to handle stuck namespaces.
+- **Destroy workflow** – May occasionally hang due to finalizers.
 
 - **GPU spot quota** – Requires a one‑time request to AWS Service Quotas (`All G and VT Spot Instance Requests`). Without quota, Karpenter cannot launch GPU nodes.
 
