@@ -155,7 +155,7 @@ The `images/` folder contains evidence that the platform works end‑to‑end:
 
 - **`prometheus-alerts.png`** – Prometheus UI displays the custom `GPUMissing` alert rule, confirming observability configuration.
 
-- **`node-exporter-metrics.png`** – A node exporter metric (e.g., `node_cpu_seconds_total`) shows Prometheus is actively scraping.
+- **`node-exporter-metrics.png`** – A node exporter metric shows Prometheus is actively scraping.
 
 - **`argocd-apps.png`** – ArgoCD applications are synced (with expected `OutOfSync` for completed jobs or dynamic ARC resources).
 
