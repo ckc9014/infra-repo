@@ -73,11 +73,18 @@ jobs:
       # ------------------------------------------------------------------
       # 4. Delete any leftover Karpenter resources
       # ------------------------------------------------------------------
-      - name: Clean up Karpenter resources
+      - name: Clean up Karpenter resources (force remove finalizers)
         run: |
+          # Remove finalizers from NodePool (if exists)
+          kubectl patch nodepool gpu-nodepool --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null || true
+          kubectl delete nodepool gpu-nodepool --ignore-not-found --wait=false 2>/dev/null || true
+
+          # Remove finalizers from EC2NodeClass
+          kubectl patch ec2nodeclass gpu-nodeclass --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null || true
+          kubectl delete ec2nodeclass gpu-nodeclass --ignore-not-found --wait=false 2>/dev/null || true
+
+          # Delete any remaining NodeClaims
           kubectl delete nodeclaim --all --ignore-not-found 2>/dev/null || true
-          kubectl delete nodepool gpu-nodepool --ignore-not-found 2>/dev/null || true
-          kubectl delete ec2nodeclass gpu-nodeclass --ignore-not-found 2>/dev/null || true
 
       # ------------------------------------------------------------------
       # 5. Destroy Terraform manifests (custom resources)
