@@ -18,75 +18,17 @@ jobs:
   env:
     uses: ./.github/workflows/determine-environment.yaml
 
-  # ----------------------------------------------------------------------
-  # Step 1: Destroy custom resources (manifests)
-  # ----------------------------------------------------------------------
-  destroy-manifests:
+  destroy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: env
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Terraform and AWS (for manifests)
-        uses: ./.github/actions/setup-terraform-oidc
-        with:
-          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
-          working-directory: ./terraform/platform/manifests
-          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-          tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
-
-      - name: Terraform Destroy (manifests)
-        working-directory: ./terraform/platform/manifests
-        run: |
-          terraform destroy -auto-approve -parallelism=50 \
-            -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
-            -var="environment=${{ needs.env.outputs.environment }}" \
-            -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
-            -var="aws_region=${{ vars.AWS_REGION }}" \
-            -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
-
-  # ----------------------------------------------------------------------
-  # Step 2: Destroy Helm releases (controllers)
-  # ----------------------------------------------------------------------
-  destroy-helm:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [env, destroy-manifests]  
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Terraform and AWS (for helm)
-        uses: ./.github/actions/setup-terraform-oidc
-        with:
-          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
-          working-directory: ./terraform/platform/helm
-          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-          tf-state-key: platform/${{ needs.env.outputs.environment }}/helm/terraform.tfstate
-
-      - name: Terraform Destroy (helm)
-        working-directory: ./terraform/platform/helm
-        run: |
-          terraform destroy -auto-approve -parallelism=50 \
-            -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
-            -var="environment=${{ needs.env.outputs.environment }}" \
-            -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
-            -var="aws_region=${{ vars.AWS_REGION }}" \
-            -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
-
-  # ----------------------------------------------------------------------
-  # Step 3: Final cleanup (stuck namespaces, finalizers)
-  # ----------------------------------------------------------------------
-  final-cleanup:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [destroy-helm]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Terraform and AWS (infrastructure) – to get cluster name
+      # ------------------------------------------------------------------
+      # 1. Setup kubectl to talk to the EKS cluster
+      # ------------------------------------------------------------------
+      - name: Setup Terraform and AWS (infrastructure)
         uses: ./.github/actions/setup-terraform-oidc
         with:
           aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
@@ -103,18 +45,80 @@ jobs:
       - name: Configure kubectl
         run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
 
-      - name: Remove finalizers from remaining ArgoCD Applications
+      # ------------------------------------------------------------------
+      # 2. Delete all ArgoCD Applications (cascade) + remove finalizers
+      # ------------------------------------------------------------------
+      - name: Delete all ArgoCD Applications
         run: |
+          # List all apps and delete them with cascade (removes managed resources)
+          argocd --core app list -o name 2>/dev/null | xargs -r argocd --core app delete --cascade || true
+          # Remove finalizers from any remaining Applications (just in case)
           kubectl get applications -n argocd -o name 2>/dev/null | xargs -r -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
 
-      - name: Force delete workload namespaces
+      # ------------------------------------------------------------------
+      # 3. Force delete all platform namespaces (including argocd)
+      # ------------------------------------------------------------------
+      - name: Force delete platform namespaces
         run: |
-          NAMESPACES="monitoring gpu-operator arc-systems training argo-rollouts argocd"
+          NAMESPACES="argocd monitoring gpu-operator arc-systems training argo-rollouts"
           for ns in $NAMESPACES; do
             kubectl delete namespace $ns --ignore-not-found --wait=false 2>/dev/null || true
           done
           for ns in $NAMESPACES; do
-            # Remove finalizers via API /finalize endpoint
+            # Remove finalizers via the /finalize API
             kubectl get namespace $ns -o json 2>/dev/null | jq '.spec.finalizers = []' | kubectl replace --raw "/api/v1/namespaces/$ns/finalize" -f - 2>/dev/null || true
             kubectl delete namespace $ns --force --grace-period=0 --wait=false 2>/dev/null || true
           done
+
+      # ------------------------------------------------------------------
+      # 4. Delete any leftover Karpenter resources
+      # ------------------------------------------------------------------
+      - name: Clean up Karpenter resources
+        run: |
+          kubectl delete nodeclaim --all --ignore-not-found 2>/dev/null || true
+          kubectl delete nodepool gpu-nodepool --ignore-not-found 2>/dev/null || true
+          kubectl delete ec2nodeclass gpu-nodeclass --ignore-not-found 2>/dev/null || true
+
+      # ------------------------------------------------------------------
+      # 5. Destroy Terraform manifests (custom resources)
+      # ------------------------------------------------------------------
+      - name: Setup Terraform for manifests
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          working-directory: ./terraform/platform/manifests
+          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+          tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
+
+      - name: Terraform destroy (manifests)
+        working-directory: ./terraform/platform/manifests
+        run: |
+          terraform destroy -auto-approve -parallelism=50 \
+            -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
+            -var="environment=${{ needs.env.outputs.environment }}" \
+            -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -var="aws_region=${{ vars.AWS_REGION }}" \
+            -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
+
+      # ------------------------------------------------------------------
+      # 6. Destroy Terraform helm releases (controllers)
+      # ------------------------------------------------------------------
+      - name: Setup Terraform for helm
+        uses: ./.github/actions/setup-terraform-oidc
+        with:
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          working-directory: ./terraform/platform/helm
+          tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
+          tf-state-key: platform/${{ needs.env.outputs.environment }}/helm/terraform.tfstate
+
+      - name: Terraform destroy (helm)
+        working-directory: ./terraform/platform/helm
+        run: |
+          terraform destroy -auto-approve -parallelism=50 \
+            -var-file="envs/${{ needs.env.outputs.environment }}.tfvars" \
+            -var="environment=${{ needs.env.outputs.environment }}" \
+            -var="tf_state_bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -var="aws_region=${{ vars.AWS_REGION }}" \
+            -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
