@@ -64,6 +64,10 @@
             working-directory: ./terraform/infrastructure
             tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
             tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
+      
+            
+        - name: Refresh Terraform state
+          run: terraform refresh
         - name: Show Terraform outputs
           run: |
-            terraform output
+            terraform output -json || echo "No outputs in JSON format"
