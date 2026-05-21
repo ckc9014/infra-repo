@@ -69,8 +69,11 @@
           run: |
             echo "tf-state-key = ${{ inputs.tf-state-key }}"
             echo "environment = ${{ needs.env.outputs.environment }}"
+            
         - name: Refresh Terraform state
           run: terraform refresh
+          working-directory: ./terraform/infrastructure
+
         - name: Show Terraform outputs
-          run: |
-            terraform output -json || echo "No outputs in JSON format"
+          run: terraform output
+          working-directory: ./terraform/infrastructure
