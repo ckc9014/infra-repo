@@ -50,30 +50,3 @@
         aws-region: ${{ vars.AWS_REGION }}
         tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
         tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
-
-    outputs:
-      runs-on: ubuntu-latest  
-      needs: [env, apply]
-      steps:
-        - uses: actions/checkout@v4
-        - name: Setup Terraform and AWS (infrastructure)
-          uses: ./.github/actions/setup-terraform-oidc
-          with:
-            aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-            aws-region: ${{ vars.AWS_REGION }}
-            working-directory: ./terraform/infrastructure
-            tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-            tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
-      
-        - name: Debug backend inputs
-          run: |
-            echo "tf-state-key = ${{ inputs.tf-state-key }}"
-            echo "environment = ${{ needs.env.outputs.environment }}"
-            
-        - name: Refresh Terraform state
-          run: terraform refresh
-          working-directory: ./terraform/infrastructure
-
-        - name: Show Terraform outputs
-          run: terraform output
-          working-directory: ./terraform/infrastructure
