@@ -35,3 +35,8 @@ output "model_bucket_name" {
   description = "Name of the S3 bucket for training outputs"
   value       = aws_s3_bucket.training.id
 }
+
+output "ecr_repository_name" {
+  description = "Name of the ECR repository for training images"
+  value       = aws_ecr_repository.training.name
+}
