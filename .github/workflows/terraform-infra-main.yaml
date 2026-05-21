@@ -50,9 +50,9 @@
         aws-region: ${{ vars.AWS_REGION }}
         tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
         tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
-        
+
     outputs:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-latest  
       needs: [env, apply]
       steps:
         - uses: actions/checkout@v4
