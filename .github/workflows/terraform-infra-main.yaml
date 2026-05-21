@@ -65,7 +65,10 @@
             tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
             tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
       
-            
+        - name: Debug backend inputs
+          run: |
+            echo "tf-state-key = ${{ inputs.tf-state-key }}"
+            echo "environment = ${{ needs.env.outputs.environment }}"
         - name: Refresh Terraform state
           run: terraform refresh
         - name: Show Terraform outputs
