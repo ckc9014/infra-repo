@@ -20,8 +20,12 @@ resource "aws_eks_pod_identity_association" "training" {
   role_arn        = aws_iam_role.training_pod_role.arn
 }
 
+resource "random_id" "suffix" {
+  byte_length = 4 
+}
+
 resource "aws_s3_bucket" "training" {
-  bucket = "${local.name_prefix}-training-bucket"
+  bucket = "${local.name_prefix}-training-bucket-${random_id.suffix.hex}"
 }
 
 resource "aws_iam_role_policy" "training_pod_s3" {
