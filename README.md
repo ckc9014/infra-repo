@@ -187,6 +187,6 @@ MIT
 
 | Priority | Feature | Est. Time | Why it matters |
 |----------|---------|-----------|----------------|
-| 1 | **NVIDIA Operator time‑slicing** – allow multiple training pods to share one physical GPU (e.g., 4 replicas per g4dn.xlarge) | 30 min | Maximise GPU utilisation; cut spot costs significantly |
-| 2 | **PrometheusRule for low GPU utilisation** – alert when `DCGM_FI_DEV_GPU_UTIL < 30%` for 10 min | 10 min | Identify under‑utilised GPUs and adjust slicing or workload |
-| 3 | **ArgoCD ApplicationSet** – parameterised training jobs (epochs, model name, dataset) from a single template | 1 hr | Enable self‑service training runs for multiple users/teams |
+| 1 | **NVIDIA Operator time‑slicing** – allow multiple training pods to share one physical GPU (e.g., 4 replicas per g4dn.xlarge) | Maximise GPU utilisation; cut spot costs significantly |
+| 2 | **PrometheusRule for low GPU utilisation** – alert when `DCGM_FI_DEV_GPU_UTIL < 30%` for 10 min | Identify under‑utilised GPUs and adjust slicing or workload |
+| 3 | **ArgoCD ApplicationSet** – parameterised training jobs (epochs, model name, dataset) from a single template | Enable self‑service training runs for multiple users/teams |
