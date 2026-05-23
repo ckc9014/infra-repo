@@ -73,18 +73,37 @@ jobs:
       # ------------------------------------------------------------------
       # 4. Delete any leftover Karpenter resources
       # ------------------------------------------------------------------
-      - name: Clean up Karpenter resources (force remove finalizers)
+      - name: Clean up Karpenter resources (force remove finalizers and wait)
         run: |
-          # Remove finalizers from NodePool (if exists)
-          kubectl patch nodepool gpu-nodepool --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null || true
-          kubectl delete nodepool gpu-nodepool --ignore-not-found --wait=false 2>/dev/null || true
+          # Helper: remove finalizers, delete, and wait
+          delete_karpenter_resource() {
+            local kind=$1
+            local name=$2
+            echo "Processing $kind/$name ..."
+            # Remove finalizers
+            kubectl patch $kind $name --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null || true
+            # Delete with wait (120 seconds timeout)
+            kubectl delete $kind $name --ignore-not-found --wait=true --timeout=120s 2>/dev/null && echo "Deleted $kind/$name" || echo "$kind/$name not found or already deleted"
+          }
 
-          # Remove finalizers from EC2NodeClass
-          kubectl patch ec2nodeclass gpu-nodeclass --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null || true
-          kubectl delete ec2nodeclass gpu-nodeclass --ignore-not-found --wait=false 2>/dev/null || true
+          delete_karpenter_resource nodepool gpu-nodepool
+          delete_karpenter_resource ec2nodeclass gpu-nodeclass
 
-          # Delete any remaining NodeClaims
-          kubectl delete nodeclaim --all --ignore-not-found 2>/dev/null || true
+          # Delete all NodeClaims (no finalizers expected, but wait)
+          kubectl delete nodeclaim --all --ignore-not-found --wait=true --timeout=60s 2>/dev/null || true
+
+          # Verify removal
+          echo "Verifying Karpenter CRDs are gone..."
+          if kubectl get ec2nodeclass gpu-nodeclass 2>/dev/null; then
+            echo "ERROR: EC2NodeClass still present after deletion"
+            exit 1
+          fi
+          if kubectl get nodepool gpu-nodepool 2>/dev/null; then
+            echo "ERROR: NodePool still present after deletion"
+            exit 1
+          fi
+          echo "All Karpenter resources cleaned up successfully."
+
 
       # ------------------------------------------------------------------
       # 5. Destroy Terraform manifests (custom resources)
