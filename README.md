@@ -155,6 +155,10 @@ The `images/` folder contains evidence that the platform works end‑to‑end:
 
 - **`pods-running.png`** – All essential pods (ArgoCD, Karpenter, Prometheus, GPU Operator, ARC) are running.
 
+- **`gpu-active-metric.png`** – Prometheus shows the custom `gpu_active` metric exposed by the training pod, confirming GPU availability and custom instrumentation.
+
+- **`servicemonitor-targets.png`** – Prometheus Target Health page displays the `training-job-monitor` ServiceMonitor endpoint as `UP`, verifying that Prometheus scrapes the training pod's metrics on port 8080.
+
 - **`s3-result.png`** – The training job uploaded `result.txt` to S3, proving GPU execution and storage integration.
 
 - **`prometheus-alerts.png`** – Prometheus UI displays the custom `GPUMissing` alert rule, confirming observability configuration.
