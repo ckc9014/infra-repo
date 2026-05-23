@@ -57,15 +57,13 @@ template:
           - /bin/sh
           - -c
           - |
-            for i in $(seq 1 30); do
-              if [ -n "$ACTIONS_RUNNER_INPUT_JITCONFIG" ]; then
-                break
-              fi
-              echo "Waiting for JIT config... attempt $i"
-              sleep 1
-            done
+                  
+          - /bin/sh
+          - -c
+          - |
             echo "$ACTIONS_RUNNER_INPUT_JITCONFIG" > /tmp/jitconfig
-            exec /home/runner/run.sh --jitconfig /tmp/jitconfig
+            echo "JIT config written. Sleeping 600s for manual debugging..."
+            sleep 600
 
         # command: ["sleep", "infinity"]
         env:
