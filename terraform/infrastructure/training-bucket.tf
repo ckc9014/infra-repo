@@ -26,6 +26,7 @@ resource "random_id" "suffix" {
 
 resource "aws_s3_bucket" "training" {
   bucket = "${local.name_prefix}-training-bucket-${random_id.suffix.hex}"
+  force_destroy = true   
 }
 
 resource "aws_iam_role_policy" "training_pod_s3" {
