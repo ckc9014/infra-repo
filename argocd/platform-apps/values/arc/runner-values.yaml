@@ -52,15 +52,21 @@ template:
                     - gpu-nodepool
     containers:
       - name: runner
-        image: "ghcr.io/actions/actions-runner:latest"
+        image: ghcr.io/actions/actions-runner:latest
         command:
           - /bin/sh
           - -c
           - |
-            # Write the JIT config from the environment variable to a temporary file
+            for i in $(seq 1 30); do
+              if [ -n "$ACTIONS_RUNNER_INPUT_JITCONFIG" ]; then
+                break
+              fi
+              echo "Waiting for JIT config... attempt $i"
+              sleep 1
+            done
             echo "$ACTIONS_RUNNER_INPUT_JITCONFIG" > /tmp/jitconfig
-            # Start the runner using the file
             exec /home/runner/run.sh --jitconfig /tmp/jitconfig
+
         # command: ["sleep", "infinity"]
         env:
           - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
