@@ -56,10 +56,8 @@ template:
         command:
           - /bin/sh
           - -c
-          - |
-            echo "$ACTIONS_RUNNER_INPUT_JITCONFIG" > /tmp/jitconfig
-            echo "JIT config written. Sleeping 600s for manual debugging..."
-            sleep 600
+          - echo -n "$ACTIONS_RUNNER_INPUT_JITCONFIG" | base64 -w0 > /tmp/jitconfig.b64
+            exec /home/runner/run.sh --jitconfig /tmp/jitconfig.b64
 
         # command: ["sleep", "infinity"]
         env:
