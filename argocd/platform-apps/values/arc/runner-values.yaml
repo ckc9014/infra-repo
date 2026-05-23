@@ -57,10 +57,6 @@ template:
           - /bin/sh
           - -c
           - |
-                  
-          - /bin/sh
-          - -c
-          - |
             echo "$ACTIONS_RUNNER_INPUT_JITCONFIG" > /tmp/jitconfig
             echo "JIT config written. Sleeping 600s for manual debugging..."
             sleep 600
