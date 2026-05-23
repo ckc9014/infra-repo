@@ -53,7 +53,14 @@ template:
     containers:
       - name: runner
         image: ghcr.io/actions/actions-runner:latest
-        command: ["sleep", "infinity"]
+        command:
+          - /bin/sh
+          - -c
+          - |
+            exec /home/runner/run.sh --jitconfig "$ACTIONS_RUNNER_INPUT_JITCONFIG"
+
+        
+        # ["sleep", "infinity"]
         env:
           - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
             value: "false"
