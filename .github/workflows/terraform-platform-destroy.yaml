@@ -71,6 +71,19 @@ jobs:
           done
 
       # ------------------------------------------------------------------
+      # 4. Delete all PVCs and PVs (to clean EBS volumes)
+      # ------------------------------------------------------------------
+      - name: Delete all PVCs and PVs (with finalizer removal)
+        run: |
+          # Delete PVCs in all namespaces
+          kubectl delete pvc --all --all-namespaces --wait=true --timeout=120s 2>/dev/null || true
+          # Remove finalizers from any remaining PVs
+          kubectl get pv -o name 2>/dev/null | xargs -r kubectl patch --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
+          # Delete PVs
+          kubectl delete pv --all --wait=true --timeout=60s 2>/dev/null || true
+          echo "Waiting 30s for EBS volumes to be deleted by CSI driver..."
+          sleep 30
+      # ------------------------------------------------------------------
       # 4. Delete any leftover Karpenter resources
       # ------------------------------------------------------------------
       - name: Clean up Karpenter resources (force remove finalizers and wait)
