@@ -26,35 +26,34 @@ jobs:
   env:
     uses: ./.github/workflows/determine-environment.yaml
 
-  plan-crds:
+  plan-helm:
     needs: env
     uses: ./.github/workflows/terraform-plan.yaml
     with:
-      working-directory: ./terraform/platform/crds
+      working-directory: ./terraform/platform/helm
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
+      tf-state-key: platform/${{ needs.env.outputs.environment }}/helm/terraform.tfstate
+      artifact-name: tfplan-helm
       environment: ${{ needs.env.outputs.environment }}
-      artifact-name: tfplan-crds
 
-
-  apply-crds:
-    needs: [env, plan-crds]
+  apply-helm:
+    needs: [env, plan-helm]
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch')
     uses: ./.github/workflows/terraform-apply.yaml
     with:
-      working-directory: ./terraform/platform/crds
+      working-directory: ./terraform/platform/helm
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
-      tf-state-key: platform/${{ needs.env.outputs.environment }}/crds/terraform.tfstate
-      artifact-name: tfplan-crds
+      tf-state-key: platform/${{ needs.env.outputs.environment }}/helm/terraform.tfstate
+      artifact-name: tfplan-helm
 
   plan-manifests:
-    needs: [env, apply-crds]  
+    needs: [env, apply-helm]  
     uses: ./.github/workflows/terraform-plan.yaml
     with:
       working-directory: ./terraform/platform/manifests
@@ -62,8 +61,8 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
       tf-state-key: platform/${{ needs.env.outputs.environment }}/manifests/terraform.tfstate
-      environment: ${{ needs.env.outputs.environment }}
       artifact-name: tfplan-manifests
+      environment: ${{ needs.env.outputs.environment }}
 
   apply-manifests:
     needs: [env, plan-manifests]
@@ -96,7 +95,7 @@ jobs:
         working-directory: ./terraform/infrastructure
         tf-state-bucket: ${{ vars.TF_STATE_BUCKET }}
         tf-state-key: infra/${{ needs.env.outputs.environment }}/terraform.tfstate
-        environment: ${{ needs.env.outputs.environment }}
+        
 
     - name: Get cluster name and endpoint
       id: get_cluster
@@ -121,11 +120,52 @@ jobs:
           --from-literal=github_app_private_key="${{ secrets.ARC_APP_PRIVATE_KEY }}" \
           -o yaml | kubectl apply -f -
 
+    - name: Wait for platform pods to be ready
+      run: |
+        echo "Waiting for ArgoCD..."
+        kubectl wait --for=condition=available --timeout=180s deployment/argocd-server -n argocd || true
+        echo "Waiting for Karpenter..."
+        kubectl wait --for=condition=available --timeout=180s deployment/karpenter -n kube-system || true
+        echo "Waiting for GPU Operator..."
+        kubectl wait --for=condition=available --timeout=180s deployment/gpu-operator -n gpu-operator || true
+        echo "Waiting for Prometheus stack..."
+        kubectl wait --for=condition=available --timeout=180s deployment/monitoring-stack-kube-prom-operator -n monitoring || true
+        echo "Waiting for ARC controller..."
+        kubectl wait --for=condition=available --timeout=180s deployment/arc -n arc-systems || true
+        sleep 10   # extra buffer for sidecars
+
     - name: Quick component check
       run: |
         echo "=== Verifying platform components ==="
-        kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server && echo "✅ ArgoCD OK" || echo "❌ ArgoCD not ready"
-        kubectl get pods -n kube-system -l app.kubernetes.io/name=karpenter && echo "✅ Karpenter OK" || echo "❌ Karpenter not found"
-        kubectl get pods -n gpu-operator 2>/dev/null && echo "✅ GPU Operator OK" || echo "❌ GPU Operator not found"
-        kubectl get pods -n monitoring 2>/dev/null && echo "✅ Prometheus stack OK" || echo "❌ Prometheus stack not found"
-        kubectl get pods -n arc-systems 2>/dev/null && echo "✅ ARC controller OK" || echo "❌ ARC controller not found"
+    
+    
+        if kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ ArgoCD OK"
+        else
+          echo "❌ ArgoCD not ready"
+        fi
+    
+         if kubectl get pods -n kube-system -l app.kubernetes.io/name=karpenter --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ Karpenter OK"
+        else
+          echo "❌ Karpenter not found"
+        fi
+        
+        
+        if kubectl get pods -n gpu-operator --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ GPU Operator OK"
+        else
+          echo "❌ GPU Operator not found"
+        fi
+        
+        if kubectl get pods -n monitoring --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ Prometheus stack OK"
+        else
+          echo "❌ Prometheus stack not found"
+        fi
+        
+        if kubectl get pods -n arc-systems --no-headers 2>/dev/null | grep -q Running; then
+          echo "✅ ARC controller OK"
+        else
+          echo "❌ ARC controller not found"
+        fi

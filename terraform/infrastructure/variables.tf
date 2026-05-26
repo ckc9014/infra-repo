@@ -48,7 +48,7 @@ variable "single_nat_gateway" {
 variable "aws_region" {
   description = "AWS region where resources will be created"
   type        = string
-  default     = "eu-west-1" 
+  default     = "eu-west-1"
 
 }
 
@@ -58,5 +58,5 @@ variable "tf_state_bucket" {
 }
 
 variable "github_actions_role_arn" {
-  type        = string
+  type = string
 }

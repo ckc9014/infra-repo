@@ -11,7 +11,7 @@ module "eks" {
   cluster_endpoint_public_access = true
 
   # Enable IAM Roles for Service Accounts (IRSA)
-  enable_irsa = true
+  enable_irsa = false
 
   authentication_mode = "API_AND_CONFIG_MAP"
 
@@ -19,10 +19,11 @@ module "eks" {
     eks-pod-identity-agent = {
       most_recent = true
     }
-    
+
     coredns = {
       most_recent = true
-    }
+      }
+    
     kube-proxy = {
       most_recent = true
     }
@@ -47,20 +48,20 @@ module "eks" {
   # -------------------------------------------------------------
   eks_managed_node_groups = {
     system = {
-      name = "system-node-group"
+      name           = "system-node-group"
       instance_types = ["t3.small"]
 
-      desired_size = 2
-      min_size     = 2
-      max_size     = 3
-      
+      desired_size = 8
+      min_size     = 8
+      max_size     = 10
+
       subnet_ids = module.vpc.private_subnets
 
       taints = [
         {
-         key    = "CriticalAddonsOnly"
-         value  = "true"
-         effect = "NO_SCHEDULE"   # or "NO_EXECUTE"
+          key    = "CriticalAddonsOnly"
+          value  = "true"
+          effect = "NO_SCHEDULE" 
         }
       ]
 

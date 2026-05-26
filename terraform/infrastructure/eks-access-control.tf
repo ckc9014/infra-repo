@@ -13,3 +13,10 @@ resource "aws_eks_access_policy_association" "github_actions_admin" {
     type = "cluster"
   }
 }
+
+# EKS Access Entry for the Karpenter node role
+resource "aws_eks_access_entry" "karpenter_nodes" {
+  cluster_name      = module.eks.cluster_name
+  principal_arn     = aws_iam_role.karpenter_node.arn
+  type              = "EC2_LINUX"  
+}

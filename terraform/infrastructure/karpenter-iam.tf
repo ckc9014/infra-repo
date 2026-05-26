@@ -39,11 +39,12 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:DescribeInstances",
           "ec2:RunInstances",
           "ec2:TerminateInstances",
+          "ec2:CreateFleet",                         # ✅ add
           "ec2:DescribeImages",
           "ec2:DescribeInstanceTypes",
-          "ec2:DescribeInstanceTypeOfferings", 
-          "ec2:DescribeAvailabilityZones",     
-          "ec2:DescribeSpotPriceHistory",        
+          "ec2:DescribeInstanceTypeOfferings",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DescribeSpotPriceHistory",
           "ec2:CreateTags",
           "ec2:DeleteTags",
           "ec2:DescribeSubnets",
@@ -51,10 +52,19 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:DescribeLaunchTemplates",
           "ec2:CreateLaunchTemplate",
           "ec2:DeleteLaunchTemplate",
+          "ec2:CreateLaunchTemplateVersion",        
+          "ec2:DeleteLaunchTemplateVersions",      
           "iam:PassRole",
           "iam:GetInstanceProfile",
+          "iam:ListInstanceProfiles",
+          "iam:CreateInstanceProfile",           
+          "iam:AddRoleToInstanceProfile",          
+          "iam:TagInstanceProfile",                
+          "iam:CreateServiceLinkedRole",
+          "iam:DeleteInstanceProfile",
           "eks:DescribeCluster",
-          "ssm:GetParameter"    
+          "ssm:GetParameter",
+          "pricing:GetProducts"                   
         ]
         Resource = "*"
       }
@@ -97,6 +107,22 @@ resource "aws_iam_role" "karpenter_node" {
     Environment = var.environment
     ManagedBy   = "Terraform"
   }
+}
+
+resource "aws_iam_role_policy" "karpenter_node_list_access" {
+  name = "${local.name_prefix}-karpenter-node-list-access"
+  role = aws_iam_role.karpenter_node.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "eks:ListAccessEntries"
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 # Attach the required policies to the node role

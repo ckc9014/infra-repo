@@ -1,14 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: monitoring-alerts
+  name: monitoring-extras
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"          
 spec:
   project: default
   source:
     repoURL: https://github.com/ckc9014/infra-repo.git
     targetRevision: main
-    path: argocd/platform-apps/monitoring
+    path: argocd/monitoring
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -16,3 +18,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

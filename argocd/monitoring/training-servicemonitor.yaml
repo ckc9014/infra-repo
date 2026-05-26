@@ -4,7 +4,7 @@ metadata:
   name: training-job-monitor
   namespace: monitoring
   labels:
-    release: kube-prometheus-stack  
+    release: monitoring-stack 
 spec:
   selector:
     matchLabels:
@@ -14,5 +14,5 @@ spec:
       - training
   endpoints:
     - port: metrics
-      interval: 30s
+      interval: 20s
       path: /metrics

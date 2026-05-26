@@ -1,15 +1,34 @@
+prometheusOperator:
+  enabled: true
+  tolerations:                             
+    - key: CriticalAddonsOnly
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+  admissionWebhooks:
+    enabled: true
+    create:
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+    patch:
+      enabled: true
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
 prometheus:
- 
   prometheusSpec:
     tolerations:
-      - key: "CriticalAddonsOnly"
-        operator: "Equal"
+      - key: CriticalAddonsOnly
+        operator: Equal
         value: "true"
-        effect: "NoSchedule"
-
+        effect: NoSchedule
     retention: 1d
     retentionSize: 5GB
-
     resources:
       requests:
         cpu: 500m
@@ -17,32 +36,49 @@ prometheus:
       limits:
         cpu: 1000m
         memory: 1200Mi
-
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: gp3
+          storageClassName: gp2
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
               storage: 10Gi
 
-  
-  serviceMonitorSelectorNilUsesHelmValues: false
-  podMonitorSelectorNilUsesHelmValues: false
-  ruleSelectorNilUsesHelmValues: false
-
+alertmanager:
+  alertmanagerSpec:
+    tolerations:
+      - key: CriticalAddonsOnly
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
 
 grafana:
-  tolerations:
-  - key: "CriticalAddonsOnly"
-    operator: "Equal"
-    value: "true"
-    effect: "NoSchedule"
   enabled: true
-  adminPassword: admin  
+  adminPassword: admin
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
   persistence:
     enabled: true
+    storageClassName: gp2
     size: 5Gi
   resources:
     requests:
@@ -55,41 +91,20 @@ grafana:
     enabled: false
   sidecar:
     dashboards:
-      enabled: true
+      enabled: false
       searchNamespace: ALL
     datasources:
-      enabled: true
+      enabled: false
       searchNamespace: ALL
-
-
-alertmanager:
-
-  alertmanagerSpec:
-    tolerations:
-      - key: "CriticalAddonsOnly"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-    enabled: true
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        cpu: 100m
-        memory: 256Mi
-    storage:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: gp3
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 2Gi
 
 
 nodeExporter:
   enabled: true
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
   resources:
     requests:
       cpu: 50m
@@ -100,6 +115,11 @@ nodeExporter:
 
 kube-state-metrics:
   enabled: true
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
   resources:
     requests:
       cpu: 50m
@@ -107,3 +127,7 @@ kube-state-metrics:
     limits:
       cpu: 100m
       memory: 256Mi
+
+serviceMonitorSelectorNilUsesHelmValues: false
+podMonitorSelectorNilUsesHelmValues: false
+ruleSelectorNilUsesHelmValues: false

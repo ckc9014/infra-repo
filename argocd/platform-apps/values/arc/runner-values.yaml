@@ -1,67 +1,82 @@
 githubConfigUrl: "https://github.com/ckc9014/training-job"
-
-# Secret containing GitHub App credentials 
 githubConfigSecret: "github-app-auth"
-
 runnerScaleSetName: "gpu-runner-set"
+labels: {}                                   # no top‑level labels needed
+runnerPodLabels:
+  gpu-runner: "true"                         # required for runs-on: gpu-runner
+minRunners: "0"
+maxRunners: "5"
 
-serviceAccount:
-  name: "arc-controller-sa"
-
-# Labels that workflows can target with "runs-on:"
-labels:
-  - "gpu-runner"
-
-
-minRunners: 0
-maxRunners: 5
-
+listenerTemplate:
+  spec:
+    tolerations:
+      - key: CriticalAddonsOnly
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+    containers:
+      - name: listener
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
 
 template:
   spec:
-    # Tolerations – allow runner to run on GPU nodes (which have a taint)
+    terminationGracePeriodSeconds: 120
+    volumes:
+      - name: work
+        emptyDir: {}
     tolerations:
-      - key: "nvidia.com/gpu"
-        operator: "Equal"
+      - key: nvidia.com/gpu
+        operator: Equal
         value: "true"
-        effect: "NoSchedule"
-    # Node selector – optionally force spot instances
+        effect: NoSchedule
+      - key: CriticalAddonsOnly
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
     nodeSelector:
-      karpenter.sh/capacity-type: "spot"
+      node.kubernetes.io/instance-type: g4dn.xlarge
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: karpenter.sh/nodepool
+                  operator: In
+                  values:
+                    - gpu-nodepool
     containers:
       - name: runner
-        # Runner image (supports GPU)
-        image: "ghcr.io/actions/actions-runner:latest"
+        image: ghcr.io/actions/actions-runner:latest
+        command:
+          - /bin/sh
+          - -c
+          - |
+            exec /home/runner/run.sh --jitconfig "$ACTIONS_RUNNER_INPUT_JITCONFIG"
+
+        
+        # ["sleep", "infinity"]
+        env:
+          - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
+            value: "false"
         resources:
           limits:
-            cpu: "4"
+            cpu: "2000m"
             memory: "16Gi"
             nvidia.com/gpu: "1"
           requests:
-            cpu: "2"
+            cpu: "1000m"
             memory: "8Gi"
             nvidia.com/gpu: "1"
-        env:
-          - name: NVIDIA_VISIBLE_DEVICES
-            value: "all"
 
 containerMode:
-  type: "kubernetes"
+  type: kubernetes
 
-# Flags to prevent ArgoCD label conflicts
-flags:
-  excludeLabelPropagationPrefixes:
-    - "argocd.argoproj.io/instance"
-    - "app.kubernetes.io/component"
-    - "app.kubernetes.io/instance"
-    - "app.kubernetes.io/managed-by"
-    - "app.kubernetes.io/name"
-    - "app.kubernetes.io/part-of"
-    - "app.kubernetes.io/version"
-
-
-admissionWebhooks:
-  enabled: false   
-
-metrics:
-  enabled: false
+controllerServiceAccount:
+  namespace: "arc-systems"
+  name: "arc-gha-rs-controller"
