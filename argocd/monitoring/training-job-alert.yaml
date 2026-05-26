@@ -40,3 +40,12 @@ spec:
       annotations:
         summary: "GPU node is not ready"
         description: "A node that previously had GPU requests is not reporting Ready."
+    
+    - alert: LowGPUUtilisation
+      expr: DCGM_FI_DEV_GPU_UTIL < 30
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "GPU utilisation below 30% for 10 minutes"
+        description: "GPU on node {{ $labels.node }} has been under 30% for 10 minutes. Check for stuck jobs or misconfigured time‑slicing."
