@@ -15,6 +15,20 @@ toolkit:
 
 devicePlugin:
   enabled: true
+  # Time‑slicing configuration – added block
+  config:
+    name: time-slicing-config
+    default: default
+    data:
+      default: |
+        version: v1
+        sharing:
+          timeSlicing:
+            renameByDefault: false
+            failRequestsGreaterThanOne: true
+            resources:
+            - name: nvidia.com/gpu
+              replicas: 4 
 
 dcgmExporter:
   enabled: true
