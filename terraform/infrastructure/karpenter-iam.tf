@@ -39,7 +39,7 @@ resource "aws_iam_policy" "karpenter_controller" {
           "ec2:DescribeInstances",
           "ec2:RunInstances",
           "ec2:TerminateInstances",
-          "ec2:CreateFleet",                         # ✅ add
+          "ec2:CreateFleet",                        
           "ec2:DescribeImages",
           "ec2:DescribeInstanceTypes",
           "ec2:DescribeInstanceTypeOfferings",
