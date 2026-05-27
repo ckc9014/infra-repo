@@ -81,8 +81,8 @@ The training job lives in a [separate repo](https://github.com/ckc9014/training-
 |----------|---------|---------|
 | `AWS_ROLE_ARN` | (same ARN as above) | OIDC role for GitHub Actions |
 | `AWS_REGION` | `eu-west-1` | AWS region |
-| `ECR_REPOSITORY` | `training-repo` | Name of the ECR repository |
-| `MODEL_BUCKET` | `training-bucket-...` | S3 bucket for uploaded results |
+| `ECR_REPOSITORY` | (copy from infra workflow output) | Name of the ECR repository |
+| `MODEL_BUCKET` | (copy from infra workflow output) | S3 bucket for uploaded results |
 
 ---
 
