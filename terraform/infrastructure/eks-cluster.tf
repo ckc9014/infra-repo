@@ -30,6 +30,10 @@ module "eks" {
     vpc-cni = {
       most_recent = true
     }
+    aws-load-balancer-controller = {
+      addon_version = "v3.3.0"               
+      service_account_role_arn = aws_iam_role.aws_lb_controller.arn 
+  }
   }
 
   # Tags that Karpenter uses to discover resources.
