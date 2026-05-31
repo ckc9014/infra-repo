@@ -14,4 +14,4 @@ spec:
       backendRefs:
         - name: argocd-server
           namespace: argocd
-          port: 80   # ensure ArgoCD service uses HTTP or configure HTTPS separately
+          port: 80

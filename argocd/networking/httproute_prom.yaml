@@ -12,6 +12,6 @@ spec:
             type: PathPrefix
             value: /prometheus
       backendRefs:
-        - name: prometheus-server
+        - name: prometheus-operated
           namespace: monitoring
           port: 9090 
