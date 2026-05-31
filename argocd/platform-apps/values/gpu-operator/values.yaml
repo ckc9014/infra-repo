@@ -8,14 +8,13 @@ operator:
 
 driver:
   enabled: true
-  # version: "550.144.03" # default for chart v26.3.1
 
 toolkit:
   enabled: true
 
 devicePlugin:
   enabled: true
-  # Time‑slicing configuration – added block
+  # Time‑slicing configuration
   config:
     name: time-slicing-config
     default: default
@@ -48,7 +47,7 @@ tolerations:
     operator: "Equal"
     value: "true"
     effect: "NoSchedule"
-  - key: "CriticalAddonsOnly"      # ← Add this
+  - key: "CriticalAddonsOnly"      
     operator: "Equal"
     value: "true"
     effect: "NoSchedule"
