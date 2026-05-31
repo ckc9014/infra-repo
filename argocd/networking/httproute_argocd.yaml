@@ -1,0 +1,17 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: argocd-route
+  namespace: networking
+spec:
+  parentRefs:
+    - name: external-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /argocd
+      backendRefs:
+        - name: argocd-server
+          namespace: argocd
+          port: 80   # ensure ArgoCD service uses HTTP or configure HTTPS separately
