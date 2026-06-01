@@ -39,7 +39,7 @@ resource "aws_iam_role_policy_attachment" "lb_controller" {
 # EKS Pod Identity Association (links service account to IAM role)
 # ----------------------------------------------------------------------
 resource "aws_eks_pod_identity_association" "lb_controller" {
-  cluster_name    = aws_eks_cluster.main.name 
+  cluster_name    = module.eks.cluster_name 
   namespace       = "kube-system"
   service_account = "aws-load-balancer-controller"
   role_arn        = aws_iam_role.lb_controller.arn
