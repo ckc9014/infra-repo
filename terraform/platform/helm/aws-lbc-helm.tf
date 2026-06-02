@@ -7,7 +7,8 @@ resource "helm_release" "aws_lb_controller" {
   chart      = "aws-load-balancer-controller"
   version    = "3.2.2"
 
-  values = [local.aws_lb_controller_values]  
+  values = [local.aws_lb_controller_values]
+  atomic  = true
   wait   = true
-  timeout = 60
+  timeout = 80
 }
