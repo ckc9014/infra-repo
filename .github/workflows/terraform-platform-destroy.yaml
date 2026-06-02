@@ -46,17 +46,25 @@ jobs:
         run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ steps.get_cluster.outputs.cluster_name }}
 
       # ------------------------------------------------------------------
-      # 2. Delete all ArgoCD Applications (cascade) + remove finalizers
+      # 2. (NEW) Delete mutating webhook from AWS Load Balancer Controller
+      # ------------------------------------------------------------------
+      - name: Remove AWS LB Controller webhook (prevents blocking deletions)
+        run: |
+          kubectl delete mutatingwebhookconfiguration aws-load-balancer-webhook --ignore-not-found
+          kubectl delete validatingwebhookconfiguration aws-load-balancer-webhook --ignore-not-found
+          # Delete the controller's Helm release manually if stuck
+          helm uninstall aws-load-balancer-controller -n kube-system --no-hooks 2>/dev/null || true
+
+      # ------------------------------------------------------------------
+      # 3. Delete all ArgoCD Applications (cascade) + remove finalizers
       # ------------------------------------------------------------------
       - name: Delete all ArgoCD Applications
         run: |
-          # List all apps and delete them with cascade (removes managed resources)
           argocd --core app list -o name 2>/dev/null | xargs -r argocd --core app delete --cascade || true
-          # Remove finalizers from any remaining Applications (just in case)
           kubectl get applications -n argocd -o name 2>/dev/null | xargs -r -I {} kubectl patch {} -n argocd --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
 
       # ------------------------------------------------------------------
-      # 3. Force delete all platform namespaces (including argocd)
+      # 4. Force delete all platform namespaces (including argocd)
       # ------------------------------------------------------------------
       - name: Force delete platform namespaces
         run: |
@@ -65,47 +73,37 @@ jobs:
             kubectl delete namespace $ns --ignore-not-found --wait=false 2>/dev/null || true
           done
           for ns in $NAMESPACES; do
-            # Remove finalizers via the /finalize API
             kubectl get namespace $ns -o json 2>/dev/null | jq '.spec.finalizers = []' | kubectl replace --raw "/api/v1/namespaces/$ns/finalize" -f - 2>/dev/null || true
             kubectl delete namespace $ns --force --grace-period=0 --wait=false 2>/dev/null || true
           done
 
       # ------------------------------------------------------------------
-      # 4. Delete all PVCs and PVs (to clean EBS volumes)
+      # 5. Delete all PVCs and PVs (to clean EBS volumes)
       # ------------------------------------------------------------------
       - name: Delete all PVCs and PVs (with finalizer removal)
         run: |
-          # Delete PVCs in all namespaces
           kubectl delete pvc --all --all-namespaces --wait=true --timeout=120s 2>/dev/null || true
-          # Remove finalizers from any remaining PVs
           kubectl get pv -o name 2>/dev/null | xargs -r kubectl patch --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
-          # Delete PVs
           kubectl delete pv --all --wait=true --timeout=60s 2>/dev/null || true
           echo "Waiting 30s for EBS volumes to be deleted by CSI driver..."
           sleep 30
+
       # ------------------------------------------------------------------
-      # 4. Delete any leftover Karpenter resources
+      # 6. Delete any leftover Karpenter resources
       # ------------------------------------------------------------------
       - name: Clean up Karpenter resources (force remove finalizers and wait)
         run: |
-          # Helper: remove finalizers, delete, and wait
           delete_karpenter_resource() {
             local kind=$1
             local name=$2
             echo "Processing $kind/$name ..."
-            # Remove finalizers
             kubectl patch $kind $name --type json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null || true
-            # Delete with wait (120 seconds timeout)
             kubectl delete $kind $name --ignore-not-found --wait=true --timeout=120s 2>/dev/null && echo "Deleted $kind/$name" || echo "$kind/$name not found or already deleted"
           }
-
           delete_karpenter_resource nodepool gpu-nodepool
           delete_karpenter_resource ec2nodeclass gpu-nodeclass
-
-          # Delete all NodeClaims (no finalizers expected, but wait)
           kubectl delete nodeclaim --all --ignore-not-found --wait=true --timeout=60s 2>/dev/null || true
 
-          # Verify removal
           echo "Verifying Karpenter CRDs are gone..."
           if kubectl get ec2nodeclass gpu-nodeclass 2>/dev/null; then
             echo "ERROR: EC2NodeClass still present after deletion"
@@ -117,9 +115,8 @@ jobs:
           fi
           echo "All Karpenter resources cleaned up successfully."
 
-
       # ------------------------------------------------------------------
-      # 5. Destroy Terraform manifests (custom resources)
+      # 7. Destroy Terraform manifests (custom resources)
       # ------------------------------------------------------------------
       - name: Setup Terraform for manifests
         uses: ./.github/actions/setup-terraform-oidc
@@ -141,7 +138,7 @@ jobs:
             -var="github_actions_role_arn=${{ vars.AWS_ROLE_ARN }}"
 
       # ------------------------------------------------------------------
-      # 6. Destroy Terraform helm releases (controllers)
+      # 8. Destroy Terraform helm releases (controllers)
       # ------------------------------------------------------------------
       - name: Setup Terraform for helm
         uses: ./.github/actions/setup-terraform-oidc
