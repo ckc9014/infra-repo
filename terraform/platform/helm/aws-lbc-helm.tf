@@ -5,7 +5,7 @@ resource "helm_release" "aws_lb_controller" {
 
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "1.13.1"   # use a compatible version
+  version    = "1.13.1"
 
   values = [local.aws_lb_controller_values]
 }
