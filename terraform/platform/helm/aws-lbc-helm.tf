@@ -5,7 +5,9 @@ resource "helm_release" "aws_lb_controller" {
 
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "1.13.1"
+  version    = "3.2.2"
 
-  values = [local.aws_lb_controller_values]
+  values = [local.aws_lb_controller_values]  
+  wait   = true
+  timeout = 60
 }

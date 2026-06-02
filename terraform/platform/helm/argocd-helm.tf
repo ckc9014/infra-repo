@@ -8,4 +8,5 @@ resource "helm_release" "argocd" {
   version    = "7.7.18"
 
   values = [local.argocd_values_file]
+  depends_on = [helm_release.aws_lb_controller]
 }
