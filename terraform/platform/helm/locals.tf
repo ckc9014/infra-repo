@@ -8,3 +8,9 @@ locals {
     cluster_endpoint = data.terraform_remote_state.infra.outputs.cluster_endpoint
   })
 }
+
+locals {
+  aws_lb_controller_values = templatefile("${path.module}/values/aws-lbc/values.yaml", {
+    cluster_name = data.terraform_remote_state.infra.outputs.cluster_name
+  })
+}
