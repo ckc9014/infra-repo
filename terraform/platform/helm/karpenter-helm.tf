@@ -8,4 +8,5 @@ resource "helm_release" "karpenter" {
   version    = "1.10.0"
 
   values = [local.karpenter_values_file]
+  depends_on = [helm_release.aws_lb_controller]
 }
