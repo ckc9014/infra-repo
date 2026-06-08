@@ -40,3 +40,8 @@ output "ecr_repository_name" {
   description = "Name of the ECR repository for training images"
   value       = aws_ecr_repository.training.name
 }
+
+output "vpc_id" {
+  description = "VPC ID where the EKS cluster is deployed"
+  value       = module.vpc.vpc_id
+}
