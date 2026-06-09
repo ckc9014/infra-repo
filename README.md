@@ -185,17 +185,3 @@ These screenshots validate the entire pipeline: infrastructure → GPU provision
 
 ## 📄 License
 MIT
-
----
-## 📋 Planned Features / Roadmap
-
-| # | Feature | Tech / Tools Involved | Why it matters |
-|---|---------|----------------------|----------------|
-| 1 | **NVIDIA Operator time‑slicing** – allow multiple training pods to share one physical GPU (e.g., 4 replicas per g4dn.xlarge) | NVIDIA GPU Operator, device plugin ConfigMap (`values.yaml`), Karpenter | Maximise GPU utilisation; cut spot costs significantly |
-| 2 | **PrometheusRule for low GPU utilisation** – alert when `DCGM_FI_DEV_GPU_UTIL < 30%` for 10 min | PrometheusRule, DCGM Exporter, Alertmanager | Detect idle GPUs, save money, debug stuck jobs |
-| 3 | **GPU usage dashboard** – auto‑load NVIDIA DCGM dashboard into existing Grafana; shows per‑pod GPU utilisation and slice count per node | Grafana sidecar, ConfigMap with dashboard JSON, DCGM Exporter, `kube-state-metrics` | One unified view of GPU health; no second Prometheus |
-| 4 | **ArgoCD ApplicationSet for training jobs** – parameterised training jobs (epochs, model name, dataset) from a single template | ArgoCD ApplicationSet, Git generator, Kustomize/Helm | Self‑service training runs for multiple users/teams |
-| 5 | **GitHub Actions trigger on S3 upload** – automatically launch a training job when a new dataset appears in S3 | GitHub Actions, S3 event notification, AWS Lambda/SQS | Event‑driven retraining pipeline – fully automated AI |
-| 6 | **Production‑ready security research pipeline** – containerise a security tool (e.g., `bandit`, `binwalk`), add error handling, logging, config, and expose via FastAPI `/scan` endpoint; deploy to EKS | FastAPI, Docker, Kubernetes Job/Deployment, S3 for results | Directly addresses security research tooling requirements – shows ability to productionise research tools and build APIs |
-| 7 | **Inference pipeline with Argo Rollouts** – deploy FastAPI model server with canary rollouts, HPA, and S3 model loading | Argo Rollouts, FastAPI, HPA, S3, Istio/ALB (optional) | Complete training → inference loop; production‑grade model serving |
-| 8 | **KEDA for event‑driven scaling** (optional) – scale inference pods based on queue depth | KEDA, SQS / Prometheus scaler | Cost‑efficient scaling to zero when no traffic |
